@@ -37,12 +37,14 @@
 	define( 'WPPT_EMAILER_TEST_MESSAGE','This is a test email from the email system. Success!'."\n\n".'If you can read this, your outbound email demonstrably works. So check the spam filters on the receiving end.' );
 	
 	// Some custom exceptions for error handing
-	class wppt_emailer_Exception                          extends Exception {}
-		class wppt_emailer_Exception_Remote               extends wppt_emailer_Exception {}
-			class wppt_emailer_Exception_Remote_Refused               extends wppt_emailer_Exception_Remote {}
-			class wppt_emailer_Exception_Remote_Incorrect_Credentials               extends wppt_emailer_Exception_Remote {}
-			class wppt_emailer_Exception_Remote_Require_Authentication               extends wppt_emailer_Exception_Remote {}
-				class wppt_emailer_Exception_Remote_Unknown_Auth               extends wppt_emailer_Exception_Remote_Require_Authentication {}
+	class wppt_emailer_Exception                                      extends Exception {}
+		class wppt_emailer_Exception_Remote                            extends wppt_emailer_Exception {}
+			class wppt_emailer_Exception_Remote_Refused                extends wppt_emailer_Exception_Remote {}
+			class wppt_emailer_Exception_Remote_Incorrect_Credentials  extends wppt_emailer_Exception_Remote {}
+			class wppt_emailer_Exception_Remote_Require_Authentication extends wppt_emailer_Exception_Remote {}
+				class wppt_emailer_Exception_Remote_Unknown_Auth       extends wppt_emailer_Exception_Remote_Require_Authentication {}
+		class wppt_emailer_Exception_Local                             extends wppt_emailer_Exception {}
+
 	/* 
 	 * This section holds our WordPress Plugin management functions
 	 */
