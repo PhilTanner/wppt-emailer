@@ -3,7 +3,7 @@
 		Plugin Name: Phil Tanner's Emailer 
 		Plugin URI:  https://github.com/PhilTanner/wppt_emailer
 		Description: Resolution of continual email woes
-		Version:     0.1
+		Version:     0.2
 		Author:      Phil Tanner
 		Author URI:  https://github.com/PhilTanner
 		License:     GPL3
@@ -26,15 +26,15 @@
 		You should have received a copy of the GNU General Public License
 		along with this program. If not, see <http://www.gnu.org/licenses/>.
 	*/
-	$version    = "0.1";
+	$version    = "0.2";
 	update_option( "wppt_emailer_version",    $version,    true );
 	
 	// Location that we're going to store our log files in
 	define( 'WPPT_EMAILER_LOG_DIR',     WP_CONTENT_DIR.DIRECTORY_SEPARATOR.'logs'.DIRECTORY_SEPARATOR.'wppt_emailer'.DIRECTORY_SEPARATOR );
 	define( 'WPPT_EMAILER_TEST_TO',     'wppt_emailer_'.time() );
 	define( 'WPPT_EMAILER_TEST_TO_ADDR', WPPT_EMAILER_TEST_TO.'@email.ghostinspector.com' );
-	define( 'WPPT_EMAILER_TEST_SUBJECT','wppt_emailer Test email' );
-	define( 'WPPT_EMAILER_TEST_MESSAGE','This is a test email from the email system. Success!' );
+	define( 'WPPT_EMAILER_TEST_SUBJECT','wppt_emailer Test email success!' );
+	define( 'WPPT_EMAILER_TEST_MESSAGE','This is a test email from the email system. Success!'."\n\n".'If you can read this, your outbound email demonstrably works. So check the spam filters on the receiving end.' );
 	
 	// Some custom exceptions for error handing
 	class wppt_emailer_Exception                          extends Exception {}
