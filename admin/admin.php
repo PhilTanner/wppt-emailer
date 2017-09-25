@@ -140,7 +140,7 @@
 		?>
 		
 		<form style="margin-right:2em;" method="post">			
-			<fieldset style="float:left; width: 50%;">
+			<fieldset style="float:left; width: calc(50% - 1em);margin-right:1em;">
 				<legend>Email Settings</legend>
 				
 				<p>
@@ -191,7 +191,7 @@
 				if( $_POST['action'] == 'test' ) {
 				?>
 					<iframe style="width: 100%;" src="https://email.ghostinspector.com/<?=WPPT_EMAILER_TEST_TO;?>/latest"></iframe>
-					<pre style="overflow:scroll; width:100%; height:16em;background-color:Silver;border:1px solid black; white-space: pre-wrap;"><?=$mailoutput?></pre>
+					<pre style="padding:1ex;overflow-y:scroll; width:100%; height:16em;background-color:Silver;border:1px solid black; white-space: pre-wrap;"><?=$mailoutput?></pre>
 				<?php } else { ?>
 					<p> No test running... </p>
 				<?php } ?>
