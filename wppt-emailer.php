@@ -74,6 +74,13 @@
 	}
 	register_deactivation_hook( __FILE__, 'wppt_emailer_deactivate' );
 
+	// Function to be called when WordPress loads a page with this plugin activated
+	function wppt_emailer_load($hook) {
+		// Logged in users make an AJAX call
+		add_action( 'wp_ajax_logfile',   'wppt_emailer_ajax_logfile' );
+	}
+	add_action('init', 'wppt_emailer_load');
+
 	// Plugin deleted
 	function wppt_emailer_uninstall() {
 		// If uninstall is not called from WordPress (i.e. is called via URL or command line)
@@ -141,7 +148,7 @@
 
 	// Log any errors for our later perusal
 	function wppt_emailer_log_error( $logfile, $err ){
-		$fn = WPNZCFCN_LOG_DIR . $logfile . '.log';
+		$fn = WPPT_EMAILER_LOG_DIR . $logfile . '.log';
 		$fp = fopen($fn, 'a');
 		fputs($fp, date('c')."\t" . json_encode($err) ."\n");
 		fclose($fp);
@@ -190,6 +197,25 @@
 		// Then, see if we can say what went wrong to the end user
 	}
 	add_action('wp_mail_failed', 'wppt_emailer_log_mailer_errors', 10, 1);
+	
+	// Echos contents of the log files for the admin tool.
+	// Note: While we'll check if user is admin user, and make it a logged in 
+	// AJAX call, this is NOT safe from hijacking (imagine passing $log as:
+	// "../../../../../../../../../../../../../../../../../etc/passwd" 
+	// for instance...)
+	function wppt_emailer_ajax_logfile() {
+		$user = wp_get_current_user();
+		// Check if we're an admin user
+		if( !$user || !$user->has_cap( "manage_options" ) ) {
+			wp_die('Insufficient privileges');
+		}
+
+		$logfile = $_GET['log'];
+		$f = fopen( WPPT_EMAILER_LOG_DIR.$logfile, 'r' ) or wp_die('Unable to open log file.');
+		$fc = fread($f, filesize( WPPT_EMAILER_LOG_DIR.$logfile ));
+		fclose($f);
+		wp_die($fc);
+	}
 
 	// www.gnuterrypratchett.com
 	function wppt_emailer_add_header_xua() {

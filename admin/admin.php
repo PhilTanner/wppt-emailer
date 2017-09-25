@@ -43,7 +43,7 @@
 		
 		// So, start our page proper
 		echo "<h2>" . __("Phil's Emailer v".get_option('wppt_emailer_version'), "wppt_emailer") . " </h2>";
-		
+
 		// We've got some settings to save, do so before we output them again
 		if( isset($_POST['action']) ) {
 			try {
@@ -199,22 +199,20 @@
 			
 		</form>
 		
-		<!--
-			<fieldset style="clear:left;">
-				<legend>Log Files</legend>
-				<ul>
-					<?php
-						$logs = scandir(WPPT_EMAILER_LOG_DIR);
-						
-						foreach( $logs as $log ){
-							if( strtolower(substr($log, -4)) == ".log" ) {
-								echo '<li> <a href="javascript:showlog(\''.$log.'\');">'.$log.'</a> </li>';
-							}
+		<fieldset style="clear:left;">
+			<legend>Log Files</legend>
+			<ul>
+				<?php
+					$logs = scandir(WPPT_EMAILER_LOG_DIR);
+					
+					foreach( $logs as $log ){
+						if( strtolower(substr($log, -4)) == ".log" ) {
+							echo '<li> <a href="javascript:showlog(\''.$log.'\');">'.$log.'</a> </li>';
 						}
-					?>
-				</ul>
-			</fieldset>
-		-->
+					}
+				?>
+			</ul>
+		</fieldset>
 		
 		<script defer="defer">
 			jQuery(document).ready( function($){
@@ -248,6 +246,15 @@
 				// Prettify our buttons
 				jQuery('form button[type="submit"]').button({ icons:{ primary: 'ui-icon-wrench' } }).filter('[value="save"]').button({icons: { secondary: 'ui-icon-disk'}}).css({float:'right'});
 			});
+			
+			function showlog( log ) {
+				jQuery('<pre style="word-wrap:break-word;white-space:pre-wrap"></pre>').load('<?=get_site_url()?>/wp-admin/admin-ajax.php?action=logfile&log='+log).dialog({
+					title: "Logfile: "+log,
+					modal: true,
+					width: "80%",
+					close: function(){ $(this).dialog("destroy"); }
+				}).parent().css({ zIndex:10000 });
+			}
 		</script>
 		<?php
 	}
