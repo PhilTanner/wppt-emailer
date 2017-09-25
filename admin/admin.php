@@ -58,7 +58,7 @@
 					$settings["wppt_emailer_password"]   = get_option("wppt_emailer_password"  );
 					$settings["wppt_emailer_smtpsecure"] = get_option("wppt_emailer_smtpsecure");
 					
-					// Then update them to what we've asked for
+					// Then update them to what we've asked for to carry out our test
 					update_option("wppt_emailer_smtpdebug",  4 ); // Except we always want most output while testing
 					update_option("wppt_emailer_smtp_host",  $_POST["wppt_emailer_smtp_host"] );
 					update_option("wppt_emailer_smtp_auth",  $_POST["wppt_emailer_smtp_auth"] );
@@ -67,13 +67,14 @@
 					update_option("wppt_emailer_password",   $_POST["wppt_emailer_password"]  );
 					update_option("wppt_emailer_smtpsecure", $_POST["wppt_emailer_smtpsecure"]);
 					
-					// Then start capturing our output
+					// Then start capturing our output just before we try sending the email
 					ob_start();
 					$mail = wp_mail( WPPT_EMAILER_TEST_TO_ADDR, WPPT_EMAILER_TEST_SUBJECT, WPPT_EMAILER_TEST_MESSAGE );
 					$mailoutput = ob_get_contents();
 					ob_end_clean();
 					
-					// Then reset our options to what they were (we were testing, not saving after all)
+					// Then reset our options to what they were (we were testing, not saving after all) and we don't want live cux
+					// getting wrong settings.
 					update_option("wppt_emailer_smtpdebug",  $settings["wppt_emailer_smtpdebug"] );
 					update_option("wppt_emailer_smtp_host",  $settings["wppt_emailer_smtp_host"] );
 					update_option("wppt_emailer_smtp_auth",  $settings["wppt_emailer_smtp_auth"] );
@@ -83,6 +84,9 @@
 					update_option("wppt_emailer_smtpsecure", $settings["wppt_emailer_smtpsecure"]);
 					
 					// Now, see if we can see any issues we can help you start debugging
+					if( strpos($mailoutput, 'No such host is known') !== false ) {
+						throw new wppt_emailer_Exception_Local(sprintf(__('Unable to resolve the SMTP Host "%s". Check your internet connection or that you have entered the hostname correctly.','wppt_emailer'), $_POST["wppt_emailer_smtp_host"]));
+					}
 					if( strpos($mailoutput, '10061') !== false || strpos($mailoutput, 'No connection could be made because the target machine actively refused it.') !== false ) {
 						throw new wppt_emailer_Exception_Remote_Refused(sprintf(__('The remote server actively refused our connection. SMTP Host "%s" is not listening on port %d. Check your settings and try again.','wppt_emailer'), $_POST["wppt_emailer_smtp_host"], $_POST["wppt_emailer_port"]));
 					}
@@ -112,6 +116,16 @@
 			} catch( wppt_emailer_Exception_Remote_Refused $Ex ) {
 				echo '<div class="ui-state-error">';
 				echo '<p>'.$Ex.'</p>';
+				echo '</div>';
+				wppt_emailer_log_error( 'AdminUpdates', $Ex );
+			} catch( wppt_emailer_Exception_Remote_Unknown_Auth $Ex ) {
+				echo '<div class="ui-state-error">';
+				echo '<p>'.$Ex.'</p>';
+				if( get_option('wppt_emailer_smtp_host') ){
+					echo '<p>';
+					echo sscanf(__('When sending out using GMail accounts, you must have already set up the account to Enable Less Secure Apps. For more information, see this URL: <a href="%s">%s</a>', 'wppt_emailer'), "https://support.google.com/accounts/answer/6010255" );
+					echo '</p>';
+				}
 				echo '</div>';
 				wppt_emailer_log_error( 'AdminUpdates', $Ex );
 			} catch( Exception $Ex ) {
@@ -150,7 +164,7 @@
 					<input type="radio" name="wppt_emailer_smtp_auth" id="wppt_emailer_smtp_auth_n" value="0" required="required"<?=(get_option('wppt_emailer_smtp_auth')?'':' checked="checked"');?> />
 				</p>
 				
-				<div id="auth"<?=(get_option('wppt_emailer_smtp_auth')?'':' style="display:none;"');?>>
+				<div id="auth" style="<?=(get_option('wppt_emailer_smtp_auth')?'':'display:none;');?>border:1px solid black; margin:1em; border-radius:5px;">
 					<p>
 						<label for="wppt_emailer_username">Username</label>
 						<input name="wppt_emailer_username" id="wppt_emailer_username" value="<?=get_option('wppt_emailer_username');?>" required="required" />
