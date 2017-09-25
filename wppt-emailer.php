@@ -97,11 +97,12 @@
 	}
 	register_uninstall_hook( __FILE__, 'wppt_emailer_uninstall' );
 	
-	// Load our JS scripts - we're gonna use jQuery & jQueryUI Dialog boxes
+	// Load our JS scripts - we're gonna use jQuery & jQueryUI Dialog boxes, and some buttons
 	// Taken from https://developer.wordpress.org/reference/functions/wp_enqueue_script/
 	function wppt_emailer_load_admin_scripts($hook) {
 		wp_enqueue_script( 'jquery' );
 		wp_enqueue_script( 'jquery-effects-core' );
+		wp_enqueue_script( 'jquery-ui-button' );
 		wp_enqueue_script( 'jquery-ui-core' );
 		wp_enqueue_script( 'jquery-ui-dialog' );
 		wp_enqueue_script( 'jquery-ui-widget' );
@@ -110,8 +111,13 @@
 	
 	// Load our style sheets
 	function wppt_emailer_load_admin_styles($hook) {
-		global $wp_scripts;
+		global $wp_scripts; // Use this to find out which jQueryUI CSS file we need
 		
+		// Grab a generic jQueryUI stylesheet
+		wp_enqueue_style(
+			'jquery-ui-redmond',
+			'//ajax.googleapis.com/ajax/libs/jqueryui/'.$wp_scripts->registered['jquery-ui-core']->ver.'/themes/redmond/jquery-ui.min.css');
+	
 		wp_register_style( 
 			'wppt_emailer_admin',	
 			plugins_url( '/css/admin.css', __FILE__ ), 
@@ -120,11 +126,6 @@
 		);
 		wp_enqueue_style ( 'wppt_emailer_admin' );
 
-		// Grab a generic jQueryUI stylesheet
-		wp_enqueue_style(
-			'jquery-ui-redmond',
-			'//ajax.googleapis.com/ajax/libs/jqueryui/'.$wp_scripts->registered['jquery-ui-core']->ver.'/themes/redmond/jquery-ui.min.css');
-	
 	}
 	add_action('admin_enqueue_scripts', 'wppt_emailer_load_admin_styles');
 
@@ -133,9 +134,8 @@
 	 * This section handles our custom functions
 	 */
 
-	// If we're an admin, load our admin console.
+	// If we're in the admin pages, load our admin console.
 	if ( is_admin() ) {
-		// We are in admin mode
 		require_once( dirname(__FILE__).'/admin/admin.php' );
 	}
 
