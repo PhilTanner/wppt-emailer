@@ -3,7 +3,7 @@
 		Plugin Name: Phil Tanner's Emailer 
 		Plugin URI:  https://github.com/PhilTanner/wppt_emailer
 		Description: Resolution of continual email woes
-		Version:     0.2
+		Version:     1.0
 		Author:      Phil Tanner
 		Author URI:  https://github.com/PhilTanner
 		License:     GPL3
@@ -26,8 +26,7 @@
 		You should have received a copy of the GNU General Public License
 		along with this program. If not, see <http://www.gnu.org/licenses/>.
 	*/
-	$version    = "0.2";
-	update_option( "wppt_emailer_version",    $version,    true );
+	$version    = "1.0";
 	
 	// Location that we're going to store our log files in
 	define( 'WPPT_EMAILER_LOG_DIR',     WP_CONTENT_DIR.DIRECTORY_SEPARATOR.'logs'.DIRECTORY_SEPARATOR.'wppt_emailer'.DIRECTORY_SEPARATOR );
@@ -53,9 +52,11 @@
 		// Create our log file directory
 		wp_mkdir_p( WPPT_EMAILER_LOG_DIR );
 		// Create an htaccess file to prevent it being accessed from the web
-		if( !file_exists( WPPT_EMAILER_LOG_DIR . '/.htaccess' ) ) {
-			$fp = fopen(WPPT_EMAILER_LOG_DIR . '/.htaccess', 'w');
+		if( !file_exists( WPPT_EMAILER_LOG_DIR . '.htaccess' ) ) {
+			$fp = fopen(WPPT_EMAILER_LOG_DIR . '.htaccess', 'w');
+			// Stop directory lists
 			fwrite($fp, 'Options -Indexes' );
+			// Deny any browsing access to any files with the ".log" extention
 			fwrite($fp, '<Files "*.log">'."\n");
 			fwrite($fp, '	Order Allow,Deny'."\n");
 			fwrite($fp, '	Deny from all'."\n");
@@ -69,8 +70,7 @@
 
 	// User "deactivates" the plugin in the dashboard
 	function wppt_emailer_deactivate() {
-		//global $wpdb;
-
+		// We're going to do nothing - but we will if you uninstall.
 	}
 	register_deactivation_hook( __FILE__, 'wppt_emailer_deactivate' );
 
@@ -136,15 +136,15 @@
 	}
 	add_action('admin_enqueue_scripts', 'wppt_emailer_load_admin_styles');
 
-
-	/* 
-	 * This section handles our custom functions
-	 */
-
 	// If we're in the admin pages, load our admin console.
 	if ( is_admin() ) {
 		require_once( dirname(__FILE__).'/admin/admin.php' );
 	}
+
+
+	/* 
+	 * This section handles our custom functions
+	 */
 
 	// Log any errors for our later perusal
 	function wppt_emailer_log_error( $logfile, $err ){
@@ -156,12 +156,12 @@
 
 	// Take over our PHPMailer settings
 	function wppt_emailer_phpmailer_settings( $phpmailer ) {
-		// Set our debug level (Default to 'off' for production cases)
-		$phpmailer->SMTPDebug=  get_option( 'wppt_emailer_smtpdebug',     0 );
 		// We're always going to use SMTP
 		$phpmailer->isSMTP();
+		// Set our debug level (Default to 'off' for production cases)
+		$phpmailer->SMTPDebug=  get_option( 'wppt_emailer_smtpdebug',     0 );
 		// What SMTP host are we going to be sending out mail through?
-		$phpmailer->Host     = get_option( 'wppt_emailer_smtp_host' );
+		$phpmailer->Host     = get_option( 'wppt_emailer_smtp_host', 'localhost' );
 		// Do we need authorisation to access this email host?
 		$phpmailer->SMTPAuth = get_option( 'wppt_emailer_smtp_auth', false );
 		// What SMTP port do we want to access?
@@ -172,19 +172,6 @@
 			$phpmailer->Password = get_option( 'wppt_emailer_password' );
 		}
 		$phpmailer->SMTPSecure = get_option( 'wppt_emailer_smtpsecure' );
-
-		// We *know* some stuff for some hosts, so we'll override any stupid 
-		// settings
-		switch( $phpmailer->Host ) {
-			// Gmail wants the below
-			/*
-			case 'smtp.gmail.com':
-				$phpmailer->SMTPSecure = 'tls';
-				$phpmailer->Port       = 465;
-				$phpmailer->SMTPAuth   = true;
-				break;
-				*/
-		}
 	}
 	// Nice high priority, so it should be run last, overriding any other plugin
 	// settings
@@ -194,7 +181,6 @@
 	function wppt_emailer_log_mailer_errors( $mailer ){
 		// First off, throw the contents into a logfile for us.
 		wppt_emailer_log_error( 'mail', $mailer );
-		// Then, see if we can say what went wrong to the end user
 	}
 	add_action('wp_mail_failed', 'wppt_emailer_log_mailer_errors', 10, 1);
 	
