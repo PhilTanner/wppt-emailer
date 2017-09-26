@@ -3,7 +3,7 @@
 		Plugin Name: Phil Tanner's Emailer 
 		Plugin URI:  https://github.com/PhilTanner/wppt_emailer
 		Description: Resolution of continual email woes
-		Version:     0.1
+		Version:     0.2
 		Author:      Phil Tanner
 		Author URI:  https://github.com/PhilTanner
 		License:     GPL3
@@ -26,23 +26,25 @@
 		You should have received a copy of the GNU General Public License
 		along with this program. If not, see <http://www.gnu.org/licenses/>.
 	*/
-	$version    = "0.1";
+	$version    = "0.2";
 	update_option( "wppt_emailer_version",    $version,    true );
 	
 	// Location that we're going to store our log files in
 	define( 'WPPT_EMAILER_LOG_DIR',     WP_CONTENT_DIR.DIRECTORY_SEPARATOR.'logs'.DIRECTORY_SEPARATOR.'wppt_emailer'.DIRECTORY_SEPARATOR );
 	define( 'WPPT_EMAILER_TEST_TO',     'wppt_emailer_'.time() );
 	define( 'WPPT_EMAILER_TEST_TO_ADDR', WPPT_EMAILER_TEST_TO.'@email.ghostinspector.com' );
-	define( 'WPPT_EMAILER_TEST_SUBJECT','wppt_emailer Test email' );
-	define( 'WPPT_EMAILER_TEST_MESSAGE','This is a test email from the email system. Success!' );
+	define( 'WPPT_EMAILER_TEST_SUBJECT','wppt_emailer Test email success!' );
+	define( 'WPPT_EMAILER_TEST_MESSAGE','This is a test email from the email system. Success!'."\n\n".'If you can read this, your outbound email demonstrably works. So check the spam filters on the receiving end.' );
 	
 	// Some custom exceptions for error handing
-	class wppt_emailer_Exception                          extends Exception {}
-		class wppt_emailer_Exception_Remote               extends wppt_emailer_Exception {}
-			class wppt_emailer_Exception_Remote_Refused               extends wppt_emailer_Exception_Remote {}
-			class wppt_emailer_Exception_Remote_Incorrect_Credentials               extends wppt_emailer_Exception_Remote {}
-			class wppt_emailer_Exception_Remote_Require_Authentication               extends wppt_emailer_Exception_Remote {}
-				class wppt_emailer_Exception_Remote_Unknown_Auth               extends wppt_emailer_Exception_Remote_Require_Authentication {}
+	class wppt_emailer_Exception                                      extends Exception {}
+		class wppt_emailer_Exception_Remote                            extends wppt_emailer_Exception {}
+			class wppt_emailer_Exception_Remote_Refused                extends wppt_emailer_Exception_Remote {}
+			class wppt_emailer_Exception_Remote_Incorrect_Credentials  extends wppt_emailer_Exception_Remote {}
+			class wppt_emailer_Exception_Remote_Require_Authentication extends wppt_emailer_Exception_Remote {}
+				class wppt_emailer_Exception_Remote_Unknown_Auth       extends wppt_emailer_Exception_Remote_Require_Authentication {}
+		class wppt_emailer_Exception_Local                             extends wppt_emailer_Exception {}
+
 	/* 
 	 * This section holds our WordPress Plugin management functions
 	 */
@@ -72,6 +74,13 @@
 	}
 	register_deactivation_hook( __FILE__, 'wppt_emailer_deactivate' );
 
+	// Function to be called when WordPress loads a page with this plugin activated
+	function wppt_emailer_load($hook) {
+		// Logged in users make an AJAX call
+		add_action( 'wp_ajax_logfile',   'wppt_emailer_ajax_logfile' );
+	}
+	add_action('init', 'wppt_emailer_load');
+
 	// Plugin deleted
 	function wppt_emailer_uninstall() {
 		// If uninstall is not called from WordPress (i.e. is called via URL or command line)
@@ -95,11 +104,12 @@
 	}
 	register_uninstall_hook( __FILE__, 'wppt_emailer_uninstall' );
 	
-	// Load our JS scripts - we're gonna use jQuery & jQueryUI Dialog boxes
+	// Load our JS scripts - we're gonna use jQuery & jQueryUI Dialog boxes, and some buttons
 	// Taken from https://developer.wordpress.org/reference/functions/wp_enqueue_script/
 	function wppt_emailer_load_admin_scripts($hook) {
 		wp_enqueue_script( 'jquery' );
 		wp_enqueue_script( 'jquery-effects-core' );
+		wp_enqueue_script( 'jquery-ui-button' );
 		wp_enqueue_script( 'jquery-ui-core' );
 		wp_enqueue_script( 'jquery-ui-dialog' );
 		wp_enqueue_script( 'jquery-ui-widget' );
@@ -108,8 +118,13 @@
 	
 	// Load our style sheets
 	function wppt_emailer_load_admin_styles($hook) {
-		global $wp_scripts;
+		global $wp_scripts; // Use this to find out which jQueryUI CSS file we need
 		
+		// Grab a generic jQueryUI stylesheet
+		wp_enqueue_style(
+			'jquery-ui-redmond',
+			'//ajax.googleapis.com/ajax/libs/jqueryui/'.$wp_scripts->registered['jquery-ui-core']->ver.'/themes/redmond/jquery-ui.min.css');
+	
 		wp_register_style( 
 			'wppt_emailer_admin',	
 			plugins_url( '/css/admin.css', __FILE__ ), 
@@ -118,11 +133,6 @@
 		);
 		wp_enqueue_style ( 'wppt_emailer_admin' );
 
-		// Grab a generic jQueryUI stylesheet
-		wp_enqueue_style(
-			'jquery-ui-redmond',
-			'//ajax.googleapis.com/ajax/libs/jqueryui/'.$wp_scripts->registered['jquery-ui-core']->ver.'/themes/redmond/jquery-ui.min.css');
-	
 	}
 	add_action('admin_enqueue_scripts', 'wppt_emailer_load_admin_styles');
 
@@ -131,15 +141,14 @@
 	 * This section handles our custom functions
 	 */
 
-	// If we're an admin, load our admin console.
+	// If we're in the admin pages, load our admin console.
 	if ( is_admin() ) {
-		// We are in admin mode
 		require_once( dirname(__FILE__).'/admin/admin.php' );
 	}
 
 	// Log any errors for our later perusal
 	function wppt_emailer_log_error( $logfile, $err ){
-		$fn = WPNZCFCN_LOG_DIR . $logfile . '.log';
+		$fn = WPPT_EMAILER_LOG_DIR . $logfile . '.log';
 		$fp = fopen($fn, 'a');
 		fputs($fp, date('c')."\t" . json_encode($err) ."\n");
 		fclose($fp);
@@ -188,6 +197,25 @@
 		// Then, see if we can say what went wrong to the end user
 	}
 	add_action('wp_mail_failed', 'wppt_emailer_log_mailer_errors', 10, 1);
+	
+	// Echos contents of the log files for the admin tool.
+	// Note: While we'll check if user is admin user, and make it a logged in 
+	// AJAX call, this is NOT safe from hijacking (imagine passing $log as:
+	// "../../../../../../../../../../../../../../../../../etc/passwd" 
+	// for instance...)
+	function wppt_emailer_ajax_logfile() {
+		$user = wp_get_current_user();
+		// Check if we're an admin user
+		if( !$user || !$user->has_cap( "manage_options" ) ) {
+			wp_die('Insufficient privileges');
+		}
+
+		$logfile = $_GET['log'];
+		$f = fopen( WPPT_EMAILER_LOG_DIR.$logfile, 'r' ) or wp_die('Unable to open log file.');
+		$fc = fread($f, filesize( WPPT_EMAILER_LOG_DIR.$logfile ));
+		fclose($f);
+		wp_die($fc);
+	}
 
 	// www.gnuterrypratchett.com
 	function wppt_emailer_add_header_xua() {

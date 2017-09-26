@@ -43,7 +43,7 @@
 		
 		// So, start our page proper
 		echo "<h2>" . __("Phil's Emailer v".get_option('wppt_emailer_version'), "wppt_emailer") . " </h2>";
-		
+
 		// We've got some settings to save, do so before we output them again
 		if( isset($_POST['action']) ) {
 			try {
@@ -58,7 +58,7 @@
 					$settings["wppt_emailer_password"]   = get_option("wppt_emailer_password"  );
 					$settings["wppt_emailer_smtpsecure"] = get_option("wppt_emailer_smtpsecure");
 					
-					// Then update them to what we've asked for
+					// Then update them to what we've asked for to carry out our test
 					update_option("wppt_emailer_smtpdebug",  4 ); // Except we always want most output while testing
 					update_option("wppt_emailer_smtp_host",  $_POST["wppt_emailer_smtp_host"] );
 					update_option("wppt_emailer_smtp_auth",  $_POST["wppt_emailer_smtp_auth"] );
@@ -67,13 +67,14 @@
 					update_option("wppt_emailer_password",   $_POST["wppt_emailer_password"]  );
 					update_option("wppt_emailer_smtpsecure", $_POST["wppt_emailer_smtpsecure"]);
 					
-					// Then start capturing our output
+					// Then start capturing our output just before we try sending the email
 					ob_start();
 					$mail = wp_mail( WPPT_EMAILER_TEST_TO_ADDR, WPPT_EMAILER_TEST_SUBJECT, WPPT_EMAILER_TEST_MESSAGE );
 					$mailoutput = ob_get_contents();
 					ob_end_clean();
 					
-					// Then reset our options to what they were (we were testing, not saving after all)
+					// Then reset our options to what they were (we were testing, not saving after all) and we don't want live cux
+					// getting wrong settings.
 					update_option("wppt_emailer_smtpdebug",  $settings["wppt_emailer_smtpdebug"] );
 					update_option("wppt_emailer_smtp_host",  $settings["wppt_emailer_smtp_host"] );
 					update_option("wppt_emailer_smtp_auth",  $settings["wppt_emailer_smtp_auth"] );
@@ -83,6 +84,9 @@
 					update_option("wppt_emailer_smtpsecure", $settings["wppt_emailer_smtpsecure"]);
 					
 					// Now, see if we can see any issues we can help you start debugging
+					if( strpos($mailoutput, 'No such host is known') !== false ) {
+						throw new wppt_emailer_Exception_Local(sprintf(__('Unable to resolve the SMTP Host "%s". Check your internet connection or that you have entered the hostname correctly.','wppt_emailer'), $_POST["wppt_emailer_smtp_host"]));
+					}
 					if( strpos($mailoutput, '10061') !== false || strpos($mailoutput, 'No connection could be made because the target machine actively refused it.') !== false ) {
 						throw new wppt_emailer_Exception_Remote_Refused(sprintf(__('The remote server actively refused our connection. SMTP Host "%s" is not listening on port %d. Check your settings and try again.','wppt_emailer'), $_POST["wppt_emailer_smtp_host"], $_POST["wppt_emailer_port"]));
 					}
@@ -114,6 +118,16 @@
 				echo '<p>'.$Ex.'</p>';
 				echo '</div>';
 				wppt_emailer_log_error( 'AdminUpdates', $Ex );
+			} catch( wppt_emailer_Exception_Remote_Unknown_Auth $Ex ) {
+				echo '<div class="ui-state-error">';
+				echo '<p>'.$Ex.'</p>';
+				if( get_option('wppt_emailer_smtp_host') ){
+					echo '<p>';
+					echo sscanf(__('When sending out using GMail accounts, you must have already set up the account to Enable Less Secure Apps. For more information, see this URL: <a href="%s">%s</a>', 'wppt_emailer'), "https://support.google.com/accounts/answer/6010255" );
+					echo '</p>';
+				}
+				echo '</div>';
+				wppt_emailer_log_error( 'AdminUpdates', $Ex );
 			} catch( Exception $Ex ) {
 				echo '<div class="ui-state-error">';
 				echo '<p>'.__('Server reported:','wppt_emailer').'</p>';
@@ -126,7 +140,7 @@
 		?>
 		
 		<form style="margin-right:2em;" method="post">			
-			<fieldset style="float:left; width: 50%;">
+			<fieldset style="float:left; width: calc(50% - 1em);margin-right:1em;">
 				<legend>Email Settings</legend>
 				
 				<p>
@@ -150,7 +164,7 @@
 					<input type="radio" name="wppt_emailer_smtp_auth" id="wppt_emailer_smtp_auth_n" value="0" required="required"<?=(get_option('wppt_emailer_smtp_auth')?'':' checked="checked"');?> />
 				</p>
 				
-				<div id="auth"<?=(get_option('wppt_emailer_smtp_auth')?'':' style="display:none;"');?>>
+				<div id="auth" style="<?=(get_option('wppt_emailer_smtp_auth')?'':'display:none;');?>border:1px solid black; margin:1em; border-radius:5px;">
 					<p>
 						<label for="wppt_emailer_username">Username</label>
 						<input name="wppt_emailer_username" id="wppt_emailer_username" value="<?=get_option('wppt_emailer_username');?>" required="required" />
@@ -177,7 +191,7 @@
 				if( $_POST['action'] == 'test' ) {
 				?>
 					<iframe style="width: 100%;" src="https://email.ghostinspector.com/<?=WPPT_EMAILER_TEST_TO;?>/latest"></iframe>
-					<pre style="overflow:scroll; width:100%; height:16em;background-color:Silver;border:1px solid black; white-space: pre-wrap;"><?=$mailoutput?></pre>
+					<pre style="padding:1ex;overflow-y:scroll; width:100%; height:16em;background-color:Silver;border:1px solid black; white-space: pre-wrap;"><?=$mailoutput?></pre>
 				<?php } else { ?>
 					<p> No test running... </p>
 				<?php } ?>
@@ -185,22 +199,20 @@
 			
 		</form>
 		
-		<!--
-			<fieldset style="clear:left;">
-				<legend>Log Files</legend>
-				<ul>
-					<?php
-						$logs = scandir(WPPT_EMAILER_LOG_DIR);
-						
-						foreach( $logs as $log ){
-							if( strtolower(substr($log, -4)) == ".log" ) {
-								echo '<li> <a href="javascript:showlog(\''.$log.'\');">'.$log.'</a> </li>';
-							}
+		<fieldset style="clear:left;">
+			<legend>Log Files</legend>
+			<ul>
+				<?php
+					$logs = scandir(WPPT_EMAILER_LOG_DIR);
+					
+					foreach( $logs as $log ){
+						if( strtolower(substr($log, -4)) == ".log" ) {
+							echo '<li> <a href="javascript:showlog(\''.$log.'\');">'.$log.'</a> </li>';
 						}
-					?>
-				</ul>
-			</fieldset>
-		-->
+					}
+				?>
+			</ul>
+		</fieldset>
 		
 		<script defer="defer">
 			jQuery(document).ready( function($){
@@ -233,7 +245,75 @@
 				
 				// Prettify our buttons
 				jQuery('form button[type="submit"]').button({ icons:{ primary: 'ui-icon-wrench' } }).filter('[value="save"]').button({icons: { secondary: 'ui-icon-disk'}}).css({float:'right'});
+				
+				// Check our settings for Gmail
+				jQuery('form').submit( function( event ) {
+					var settingsGood = true;
+					// Look for a GMail/Google server
+					if( jQuery('#wppt_emailer_smtp_host').val().indexOf('gmail') >= 0 || jQuery('#wppt_emailer_smtp_host').val().indexOf('google') ) {
+						// As soon as any step fails, don't bother checking the rest
+						while( settingsGood ) {
+							if( jQuery('#wppt_emailer_smtp_host').val().toLowerCase() != 'smtp.gmail.com') {
+								settingsGood = false;
+							}
+							if( jQuery('#wppt_emailer_port').val() != '587') {
+								settingsGood = false;
+							}
+							if( !jQuery('#wppt_emailer_smtp_auth_y').prop('checked') ) {
+								settingsGood = false;
+							}
+							if( jQuery('#wppt_emailer_username').val().indexOf('@') < 0) {
+								settingsGood = false;
+							}
+							if( jQuery('#wppt_emailer_smtpsecure').val() != 'tls') {
+								settingsGood = false;
+							}
+							// Avoid infinite loops :D
+							break;
+						}
+						// If there's an issue, suggest what our settings should be
+						if( !settingsGood ) {
+							jQuery('<div></div>').html('<p>It looks like you\'re trying to use Google outbound servers to send mail, but '+
+								'your settings don\'t seem to match their recommended ones.</p>'+
+								'<p> You should update your values to the following settings:'+
+								'<dl>'+
+								'	<dt>Host</dt>'+
+								'	<dd>smtp.gmail.com</dd>'+
+								'	<dt>Port</dt>'+
+								'	<dd>587</dd>'+
+								'	<dt>Use username/password</dt>'+
+								'	<dd>Yes</dd>'+
+								'	<dt>Username</dt>'+
+								'	<dd><em>&lt;Your GMail email address&gt;</em></dd>'+
+								'	<dt>Password</dt>'+
+								'	<dd><em>&lt;The password you use to log in to GMail.com&gt;</em></dd>'+
+								'	<dt>Encrypted sign in</dt>'+
+								'	<dd>TLS</dd>'+
+								'</dl>').dialog({
+								modal:true,
+								title:'Confirm settings',
+								width:'50%',
+								buttons: [
+									{ text: 'OK', click: function(){ jQuery(this).dialog('close'); } }
+								]
+							});
+						}
+					}
+					// Exit with our status, true means continue, false means don't submit
+					return settingsGood;
+				});
+			
 			});
+			
+			// AJAX call to display contents of a log file
+			function showlog( log ) {
+				jQuery('<pre style="word-wrap:break-word;white-space:pre-wrap"></pre>').load('<?=get_site_url()?>/wp-admin/admin-ajax.php?action=logfile&log='+log).dialog({
+					title: "Logfile: "+log,
+					modal: true,
+					width: "80%",
+					close: function(){ $(this).dialog("destroy"); }
+				}).parent().css({ zIndex:10000 });
+			}
 		</script>
 		<?php
 	}
