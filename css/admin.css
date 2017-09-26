@@ -81,3 +81,5 @@ input[type="tel"] {
 input[type="date"] {
 	width:10em;
 }
+dt { font-weight: bold; }
+dd { font-family: monospace; color:#666; }

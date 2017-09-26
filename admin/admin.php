@@ -245,8 +245,67 @@
 				
 				// Prettify our buttons
 				jQuery('form button[type="submit"]').button({ icons:{ primary: 'ui-icon-wrench' } }).filter('[value="save"]').button({icons: { secondary: 'ui-icon-disk'}}).css({float:'right'});
+				
+				// Check our settings for Gmail
+				jQuery('form').submit( function( event ) {
+					var settingsGood = true;
+					// Look for a GMail/Google server
+					if( jQuery('#wppt_emailer_smtp_host').val().indexOf('gmail') >= 0 || jQuery('#wppt_emailer_smtp_host').val().indexOf('google') ) {
+						// As soon as any step fails, don't bother checking the rest
+						while( settingsGood ) {
+							if( jQuery('#wppt_emailer_smtp_host').val().toLowerCase() != 'smtp.gmail.com') {
+								settingsGood = false;
+							}
+							if( jQuery('#wppt_emailer_port').val() != '587') {
+								settingsGood = false;
+							}
+							if( !jQuery('#wppt_emailer_smtp_auth_y').prop('checked') ) {
+								settingsGood = false;
+							}
+							if( jQuery('#wppt_emailer_username').val().indexOf('@') < 0) {
+								settingsGood = false;
+							}
+							if( jQuery('#wppt_emailer_smtpsecure').val() != 'tls') {
+								settingsGood = false;
+							}
+							// Avoid infinite loops :D
+							break;
+						}
+						// If there's an issue, suggest what our settings should be
+						if( !settingsGood ) {
+							jQuery('<div></div>').html('<p>It looks like you\'re trying to use Google outbound servers to send mail, but '+
+								'your settings don\'t seem to match their recommended ones.</p>'+
+								'<p> You should update your values to the following settings:'+
+								'<dl>'+
+								'	<dt>Host</dt>'+
+								'	<dd>smtp.gmail.com</dd>'+
+								'	<dt>Port</dt>'+
+								'	<dd>587</dd>'+
+								'	<dt>Use username/password</dt>'+
+								'	<dd>Yes</dd>'+
+								'	<dt>Username</dt>'+
+								'	<dd><em>&lt;Your GMail email address&gt;</em></dd>'+
+								'	<dt>Password</dt>'+
+								'	<dd><em>&lt;The password you use to log in to GMail.com&gt;</em></dd>'+
+								'	<dt>Encrypted sign in</dt>'+
+								'	<dd>TLS</dd>'+
+								'</dl>').dialog({
+								modal:true,
+								title:'Confirm settings',
+								width:'50%',
+								buttons: [
+									{ text: 'OK', click: function(){ jQuery(this).dialog('close'); } }
+								]
+							});
+						}
+					}
+					// Exit with our status, true means continue, false means don't submit
+					return settingsGood;
+				});
+			
 			});
 			
+			// AJAX call to display contents of a log file
 			function showlog( log ) {
 				jQuery('<pre style="word-wrap:break-word;white-space:pre-wrap"></pre>').load('<?=get_site_url()?>/wp-admin/admin-ajax.php?action=logfile&log='+log).dialog({
 					title: "Logfile: "+log,
