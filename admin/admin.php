@@ -121,7 +121,7 @@
 			} catch( wppt_emailer_Exception_Remote_Unknown_Auth $Ex ) {
 				echo '<div class="ui-state-error">';
 				echo '<p>'.$Ex.'</p>';
-				if( get_option('wppt_emailer_smtp_host') ){
+				if( strtolower(get_option('wppt_emailer_smtp_host'))=='smtp.gmail.com' ){
 					echo '<p>';
 					echo sscanf(__('When sending out using GMail accounts, you must have already set up the account to Enable Less Secure Apps. For more information, see this URL: <a href="%s">%s</a>', 'wppt_emailer'), "https://support.google.com/accounts/answer/6010255" );
 					echo '</p>';
@@ -275,7 +275,7 @@
 						if( !settingsGood ) {
 							jQuery('<div></div>').html('<p>It looks like you\'re trying to use Google outbound servers to send mail, but '+
 								'your settings don\'t seem to match their recommended ones.</p>'+
-								'<p> You should update your values to the following settings:'+
+								'<p> You should update your values to the following settings:</p>'+
 								'<dl>'+
 								'	<dt>Host</dt>'+
 								'	<dd>smtp.gmail.com</dd>'+
@@ -289,7 +289,10 @@
 								'	<dd><em>&lt;The password you use to log in to GMail.com&gt;</em></dd>'+
 								'	<dt>Encrypted sign in</dt>'+
 								'	<dd>TLS</dd>'+
-								'</dl>').dialog({
+								'</dl>'+
+								'<p>You also need to make sure that you have enabled "Less Secure Apps" to use your account:<br />'+
+								'<a href="https://support.google.com/accounts/answer/6010255" target="_blank">https://support.google.com/accounts/answer/6010255</a>'+
+								'</p>').dialog({
 								modal:true,
 								title:'Confirm settings',
 								width:'50%',
