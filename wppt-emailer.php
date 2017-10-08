@@ -3,7 +3,7 @@
 		Plugin Name: Phil Tanner's Emailer 
 		Plugin URI:  https://github.com/PhilTanner/wppt_emailer
 		Description: Resolution of continual email woes
-		Version:     1.0
+		Version:     1.1
 		Author:      Phil Tanner
 		Author URI:  https://github.com/PhilTanner
 		License:     GPL3
@@ -26,7 +26,6 @@
 		You should have received a copy of the GNU General Public License
 		along with this program. If not, see <http://www.gnu.org/licenses/>.
 	*/
-	$version    = "1.0";
 	
 	// Location that we're going to store our log files in
 	define( 'WPPT_EMAILER_LOG_DIR',     WP_CONTENT_DIR.DIRECTORY_SEPARATOR.'logs'.DIRECTORY_SEPARATOR.'wppt_emailer'.DIRECTORY_SEPARATOR );
@@ -49,6 +48,8 @@
 	 */
 	// User "activates" the plugin in the dashboard
 	function wppt_emailer_activate(){
+		global $wppt_emailer_version;
+		
 		// Create our log file directory
 		wp_mkdir_p( WPPT_EMAILER_LOG_DIR );
 		// Create an htaccess file to prevent it being accessed from the web
@@ -64,7 +65,10 @@
 			fclose($fp);
 		}
 		// Update our plugin version to this one
-		update_option( "wppt_emailer_version", $version );
+		$plugin_data = get_plugin_data(__FILE__);
+		update_option( "wppt_emailer_version", $plugin_data['Version'] );
+
+		register_uninstall_hook( __FILE__, 'wppt_emailer_uninstall' );
 	}
 	register_activation_hook( __FILE__, 'wppt_emailer_activate' );
 
@@ -83,13 +87,9 @@
 
 	// Plugin deleted
 	function wppt_emailer_uninstall() {
-		// If uninstall is not called from WordPress (i.e. is called via URL or command line)
-		if ( !defined( 'WP_UNINSTALL_PLUGIN' ) ) {
-			wp_die();
-		}
-
 		// Remove all our settings
 		delete_option( "wppt_emailer_version"   );
+		
 		delete_option( "wppt_emailer_smtpdebug" );
 		delete_option( "wppt_emailer_smtp_host" );
 		delete_option( "wppt_emailer_smtp_auth" );
@@ -100,9 +100,7 @@
 
 		// Remove our log files
 		rmdir( WPPT_EMAILER_LOG_DIR, true );
-
 	}
-	register_uninstall_hook( __FILE__, 'wppt_emailer_uninstall' );
 	
 	// Load our JS scripts - we're gonna use jQuery & jQueryUI Dialog boxes, and some buttons
 	// Taken from https://developer.wordpress.org/reference/functions/wp_enqueue_script/
@@ -185,10 +183,6 @@
 	add_action('wp_mail_failed', 'wppt_emailer_log_mailer_errors', 10, 1);
 	
 	// Echos contents of the log files for the admin tool.
-	// Note: While we'll check if user is admin user, and make it a logged in 
-	// AJAX call, this is NOT safe from hijacking (imagine passing $log as:
-	// "../../../../../../../../../../../../../../../../../etc/passwd" 
-	// for instance...)
 	function wppt_emailer_ajax_logfile() {
 		$user = wp_get_current_user();
 		// Check if we're an admin user
@@ -196,7 +190,15 @@
 			wp_die('Insufficient privileges');
 		}
 
+		// Which log file?
 		$logfile = $_GET['log'];
+		// Avoid people passing in things like "/../../../../../../../../etc/passwd"
+		// Split our requested file down by dots
+		$logfile = explode('.', $logfile);
+		// Then only use the first bit (so "/" in above abuse example, or "mail" in legit example)
+		$logfile = $logfile[0];
+		// Then append ".log" to the end again.
+		$logfile .= ".log";
 		$f = fopen( WPPT_EMAILER_LOG_DIR.$logfile, 'r' ) or wp_die('Unable to open log file.');
 		$fc = fread($f, filesize( WPPT_EMAILER_LOG_DIR.$logfile ));
 		fclose($f);
