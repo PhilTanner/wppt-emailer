@@ -41,8 +41,8 @@
 			wp_die( __( "You do not have sufficient permissions to access this page." ) );
 		}
 		
-		// So, start our page proper
-		echo "<h2>" . __("Phil's Emailer v".get_option('wppt_emailer_version'), "wppt_emailer") . " </h2>";
+		// So, start our page proper         
+		echo "<h2>" . sprintf(__("Phil's Emailer v%s", "wppt_emailer"), get_option('wppt_emailer_version', __('Unknown', 'wppt_emailer'))) . " </h2>";
 
 		// We've got some settings to save, do so before we output them again
 		if( isset($_POST['action']) ) {

@@ -26,7 +26,6 @@
 		You should have received a copy of the GNU General Public License
 		along with this program. If not, see <http://www.gnu.org/licenses/>.
 	*/
-	$version    = "1.1";
 	
 	// Location that we're going to store our log files in
 	define( 'WPPT_EMAILER_LOG_DIR',     WP_CONTENT_DIR.DIRECTORY_SEPARATOR.'logs'.DIRECTORY_SEPARATOR.'wppt_emailer'.DIRECTORY_SEPARATOR );
@@ -49,6 +48,8 @@
 	 */
 	// User "activates" the plugin in the dashboard
 	function wppt_emailer_activate(){
+		global $wppt_emailer_version;
+		
 		// Create our log file directory
 		wp_mkdir_p( WPPT_EMAILER_LOG_DIR );
 		// Create an htaccess file to prevent it being accessed from the web
@@ -64,7 +65,8 @@
 			fclose($fp);
 		}
 		// Update our plugin version to this one
-		update_option( "wppt_emailer_version", $version );
+		$plugin_data = get_plugin_data(__FILE__);
+		update_option( "wppt_emailer_version", $plugin_data['Version'] );
 
 		register_uninstall_hook( __FILE__, 'wppt_emailer_uninstall' );
 	}
