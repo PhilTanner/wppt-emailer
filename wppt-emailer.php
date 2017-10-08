@@ -65,6 +65,8 @@
 		}
 		// Update our plugin version to this one
 		update_option( "wppt_emailer_version", $version );
+
+		register_uninstall_hook( __FILE__, 'wppt_emailer_uninstall' );
 	}
 	register_activation_hook( __FILE__, 'wppt_emailer_activate' );
 
@@ -83,13 +85,9 @@
 
 	// Plugin deleted
 	function wppt_emailer_uninstall() {
-		// If uninstall is not called from WordPress (i.e. is called via URL or command line)
-		if ( !defined( 'WP_UNINSTALL_PLUGIN' ) ) {
-			wp_die();
-		}
-
 		// Remove all our settings
 		delete_option( "wppt_emailer_version"   );
+		
 		delete_option( "wppt_emailer_smtpdebug" );
 		delete_option( "wppt_emailer_smtp_host" );
 		delete_option( "wppt_emailer_smtp_auth" );
@@ -100,9 +98,7 @@
 
 		// Remove our log files
 		rmdir( WPPT_EMAILER_LOG_DIR, true );
-
 	}
-	register_uninstall_hook( __FILE__, 'wppt_emailer_uninstall' );
 	
 	// Load our JS scripts - we're gonna use jQuery & jQueryUI Dialog boxes, and some buttons
 	// Taken from https://developer.wordpress.org/reference/functions/wp_enqueue_script/
