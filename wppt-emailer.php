@@ -210,3 +210,14 @@
 		header( 'X-Clacks-Overhead: GNU Terry Pratchett' );
 	}
 	add_action( 'send_headers', 'wppt_emailer_add_header_xua' );
+	
+	if( !function_exists('get_git_branch') ) {
+		// Taken from: https://stackoverflow.com/questions/7447472/how-could-i-display-the-current-git-branch-name-at-the-top-of-the-page-of-my-de
+		function get_git_branch() {
+			if( !file_exists( dirname(__FILE__).DIRECTORY_SEPARATOR.'.git'.DIRECTORY_SEPARATOR.'HEAD' ) ) {
+				return false; 
+			} else { 
+				return trim(substr(file_get_contents(dirname(__FILE__).DIRECTORY_SEPARATOR.'.git'.DIRECTORY_SEPARATOR.'HEAD'), 16));
+			}
+		}
+	}

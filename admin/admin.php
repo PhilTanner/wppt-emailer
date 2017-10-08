@@ -42,8 +42,12 @@
 		}
 		
 		// So, start our page proper         
-		echo "<h2>" . sprintf(__("Phil's Emailer v%s", "wppt_emailer"), get_option('wppt_emailer_version', __('Unknown', 'wppt_emailer'))) . " </h2>";
-
+		echo "<h2>" . sprintf(__("Phil's Emailer v%s", "wppt_emailer"), get_option('wppt_emailer_version', __('Unknown', 'wppt_emailer')));
+		$gitbranch = get_git_branch();
+		if($gitbranch) {
+			echo sprintf(__('<br /><span style="font-size:80%%">(Current branch: <em>%s</em>)</style>','wppt_emailer'), $gitbranch);
+		}
+		echo "</h2>";
 		// We've got some settings to save, do so before we output them again
 		if( isset($_POST['action']) ) {
 			try {
