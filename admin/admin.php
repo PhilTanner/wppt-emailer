@@ -91,13 +91,16 @@
 						throw new wppt_emailer_Exception_Remote_Refused(sprintf(__('The remote server actively refused our connection. SMTP Host "%s" is not listening on port %d. Check your settings and try again.','wppt_emailer'), $_POST["wppt_emailer_smtp_host"], $_POST["wppt_emailer_port"]));
 					}
 					if( strpos($mailoutput, '530-5.5.1 Authentication Required.') !== false ) {
-						throw new wppt_emailer_Exception_Remote_Require_Authentication(sprintf(__('Couldn\'t connec to SMTP Host "%s" on port %d. Username and password is required.','wppt_emailer'), $_POST["wppt_emailer_smtp_host"], $_POST["wppt_emailer_port"]));
+						throw new wppt_emailer_Exception_Remote_Require_Authentication(sprintf(__('Couldn\'t connect to SMTP Host "%s" on port %d. Username and password is required.','wppt_emailer'), $_POST["wppt_emailer_smtp_host"], $_POST["wppt_emailer_port"]));
 					}
 					if( strpos($mailoutput, '535-5.7.8 Username and Password not accepted.') !== false ) {
-						throw new wppt_emailer_Exception_Remote_Incorrect_Credentials(sprintf(__('Couldn\'t connec to SMTP Host "%s" on port %d. Username and password is incorrect.','wppt_emailer'), $_POST["wppt_emailer_smtp_host"], $_POST["wppt_emailer_port"]));
+						throw new wppt_emailer_Exception_Remote_Incorrect_Credentials(sprintf(__('Couldn\'t connect to SMTP Host "%s" on port %d. Username and password is incorrect.','wppt_emailer'), $_POST["wppt_emailer_smtp_host"], $_POST["wppt_emailer_port"]));
 					}
 					if( strpos($mailoutput, '534 5.7.14  https://support.google.com/mail/answer/78754') !== false ) {
 						throw new wppt_emailer_Exception_Remote_Unknown_Auth(__('Unknown authentication method. Try TLS? Or enable less secure apps: https://support.google.com/accounts/answer/6010255.','wppt_emailer'));
+					}
+					if( strpos($mailoutput, '550 5.7.60 SMTP; Client does not have permissions to send as this sender') !== false ) {
+						throw new wppt_emailer_Exception_Remote_Unknown_Auth(__('You need to enable Send As permissions for this account, see here: https://technet.microsoft.com/en-us/library/dn554323.aspx.','wppt_emailer'));
 					}
 					
 					// Something went wrong, but we've no idea what. 
@@ -115,12 +118,12 @@
 				}
 			} catch( wppt_emailer_Exception_Remote_Refused $Ex ) {
 				echo '<div class="ui-state-error">';
-				echo '<p>'.$Ex.'</p>';
+				echo '<p>'.$Ex->getMessage().'</p>';
 				echo '</div>';
 				wppt_emailer_log_error( 'AdminUpdates', $Ex );
 			} catch( wppt_emailer_Exception_Remote_Unknown_Auth $Ex ) {
 				echo '<div class="ui-state-error">';
-				echo '<p>'.$Ex.'</p>';
+				echo '<p>'.$Ex->getMessage().'</p>';
 				if( strtolower(get_option('wppt_emailer_smtp_host'))=='smtp.gmail.com' ){
 					echo '<p>';
 					echo sscanf(__('When sending out using GMail accounts, you must have already set up the account to Enable Less Secure Apps. For more information, see this URL: <a href="%s">%s</a>', 'wppt_emailer'), "https://support.google.com/accounts/answer/6010255" );
@@ -131,7 +134,7 @@
 			} catch( Exception $Ex ) {
 				echo '<div class="ui-state-error">';
 				echo '<p>'.__('Server reported:','wppt_emailer').'</p>';
-				echo '<pre>'.$Ex.'</pre>';
+				echo '<pre>'.$Ex->getMessage().'</pre>';
 				echo '</div>';
 				wppt_emailer_log_error( 'AdminUpdates', $Ex );
 			} 		
@@ -250,7 +253,7 @@
 				jQuery('form').submit( function( event ) {
 					var settingsGood = true;
 					// Look for a GMail/Google server
-					if( jQuery('#wppt_emailer_smtp_host').val().indexOf('gmail') >= 0 || jQuery('#wppt_emailer_smtp_host').val().indexOf('google') ) {
+					if( jQuery('#wppt_emailer_smtp_host').val().indexOf('gmail') >= 0 || jQuery('#wppt_emailer_smtp_host').val().indexOf('google') >= 0 ) {
 						// As soon as any step fails, don't bother checking the rest
 						while( settingsGood ) {
 							if( jQuery('#wppt_emailer_smtp_host').val().toLowerCase() != 'smtp.gmail.com') {
@@ -300,7 +303,60 @@
 									{ text: 'OK', click: function(){ jQuery(this).dialog('close'); } }
 								]
 							});
+						// Look for an MS server
 						}
+					} else if( jQuery('#wppt_emailer_smtp_host').val().indexOf('office365') >= 0 ) {
+						// As soon as any step fails, don't bother checking the rest
+						while( settingsGood ) {
+							if( jQuery('#wppt_emailer_smtp_host').val().toLowerCase() != 'smtp.office365.com') {
+								settingsGood = false;
+							}
+							if( jQuery('#wppt_emailer_port').val() != '587') {
+								settingsGood = false;
+							}
+							if( !jQuery('#wppt_emailer_smtp_auth_y').prop('checked') ) {
+								settingsGood = false;
+							}
+							if( jQuery('#wppt_emailer_username').val().indexOf('@') < 0) {
+								settingsGood = false;
+							}
+							if( jQuery('#wppt_emailer_smtpsecure').val() != 'tls') {
+								settingsGood = false;
+							}
+							// Avoid infinite loops :D
+							break;
+						}
+						// If there's an issue, suggest what our settings should be
+						if( !settingsGood ) {
+							jQuery('<div></div>').html('<p>It looks like you\'re trying to use Microsoft Office 365 outbound servers to send mail, but '+
+								'your settings don\'t seem to match their recommended ones.</p>'+
+								'<p> You should update your values to the following settings:</p>'+
+								'<dl>'+
+								'	<dt>Host</dt>'+
+								'	<dd>smtp.office365.com</dd>'+
+								'	<dt>Port</dt>'+
+								'	<dd>587</dd>'+
+								'	<dt>Use username/password</dt>'+
+								'	<dd>Yes</dd>'+
+								'	<dt>Username</dt>'+
+								'	<dd><em>&lt;Your Office 365 email address&gt;</em></dd>'+
+								'	<dt>Password</dt>'+
+								'	<dd><em>&lt;The password you use to log in to Office 365.com&gt;</em></dd>'+
+								'	<dt>Encrypted sign in</dt>'+
+								'	<dd>TLS</dd>'+
+								'</dl>'+
+								'<p>You also need to make sure that you have enabled "multifunction devices or applications" to use your account:<br />'+
+								'<a href="https://technet.microsoft.com/en-us/library/dn554323.aspx" target="_blank">https://technet.microsoft.com/en-us/library/dn554323.aspx</a>'+
+								'</p>').dialog({
+								modal:true,
+								title:'Confirm settings',
+								width:'50%',
+								buttons: [
+									{ text: 'OK', click: function(){ jQuery(this).dialog('close'); } }
+								]
+							});
+						}
+
 					}
 					// Exit with our status, true means continue, false means don't submit
 					return settingsGood;
