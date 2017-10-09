@@ -217,7 +217,7 @@
 			if( !file_exists( plugin_dir_path(__FILE__).'.git'.DIRECTORY_SEPARATOR.'HEAD' ) ) {
 				return false; 
 			} else { 
-				return trim(substr(file_get_contents(dirname(__FILE__).DIRECTORY_SEPARATOR.'.git'.DIRECTORY_SEPARATOR.'HEAD'), 16));
+				return trim(substr(file_get_contents(plugin_dir_path(__FILE__).'.git'.DIRECTORY_SEPARATOR.'HEAD'), 16));
 			}
 		}
 	}
