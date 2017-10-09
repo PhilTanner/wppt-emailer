@@ -1,6 +1,8 @@
 # wppt-emailer (WordPress Phil Tanner's Emailer)
 
-Yet another WordPress plugin that helps resolve email woes.
+Yet another WordPress plugin that helps diagnose and resolve email woes.
+
+Note: Uses 3rd party app Ghost Inspector (see below) and embeds a jQuery stylesheet from Google's CDN for use within the admin tool.
 
 ## Getting Started
 
