@@ -58,10 +58,11 @@
 			echo sprintf(__('<p><strong style="font-size:120%%;">WARNING:</strong><br/>The activated plugin version ("%s") does not match the current file version ("%s").</p><p>You must deactivate and re-activate the <strong>%s</strong> plugin for the changes to take effect.</p>', 'wppt_emailer'), $this_ver, $plugin_data['Version'], $plugin_data['Name']);
 			echo '</div>';
 		}
-
 		
 		// We've got some settings to save, do so before we output them again
 		if( isset($_POST['action']) ) {
+			// Check our nonce
+			check_admin_referer( 'wppt_emailer_settings' );
 			try {
 				if( $_POST['action'] == 'test' ) {
 					$show_email_received = false;
@@ -205,6 +206,9 @@
 						</select>
 					</p>
 				</div>
+				<?php
+					wp_nonce_field( 'wppt_emailer_settings' );
+				?>
 				<button type="submit" value="test" name="action">Test</button>
 				<button type="submit" value="save" name="action">Save</button>
 			</fieldset>
