@@ -1,6 +1,8 @@
 # wppt-emailer (WordPress Phil Tanner's Emailer)
 
-Yet another WordPress plugin that helps resolve email woes.
+Yet another WordPress plugin that helps diagnose and resolve email woes.
+
+Note: Uses 3rd party app Ghost Inspector (see below) and embeds a jQuery stylesheet from Google's CDN for use within the admin tool.
 
 ## Getting Started
 
@@ -43,6 +45,17 @@ Select the [Phil's Emailer] link in the Dashboard navigation.
 Enter your SMTP mail settings, and click the Test button.
 
 If it works, you will get a success statement appear on the right. If not - hopefully a meaningful message as to why not.
+
+Please NOTE!:
+The email address receipt is tested by sending the email to a 3rd party external service, Ghost Inspector (https://ghostinspector.com/).
+
+Ghost Inspector is a really useful automated test suite - which provides a way to test applications sending of emails. I recommend you check it out if you want to run any form of automated tests against your web sites.
+
+The mail sent to their server contains only fixed text, with no details about your system (other than the From: address for the emails). The email inbox is deleted after an hour and is not retained.
+
+For more information about their email test gateway, you can view their documentation here:
+https://ghostinspector.com/docs/check-email/
+
 
 ## Deployment
 

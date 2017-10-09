@@ -3,7 +3,7 @@
 		Plugin Name: Phil Tanner's Emailer 
 		Plugin URI:  https://github.com/PhilTanner/wppt_emailer
 		Description: Resolution of continual email woes
-		Version:     1.1
+		Version:     1.0.1
 		Author:      Phil Tanner
 		Author URI:  https://github.com/PhilTanner
 		License:     GPL3
