@@ -41,6 +41,8 @@
 			wp_die( __( "You do not have sufficient permissions to access this page." ) );
 		}
 		
+		echo '<div class="wppt_emailer">';
+		
 		// So, start our page proper
 		$this_ver = get_option('wppt_emailer_version', __('Unknown', 'wppt_emailer'));
 		echo "<h2>" . sprintf(__("Phil's Emailer v%s", "wppt_emailer"), $this_ver);
@@ -52,7 +54,7 @@
 		
 		$plugin_data = get_plugin_data(plugin_dir_path(__FILE__).'../wppt-emailer.php');
 		if( $plugin_data['Version'] != $this_ver ){
-			echo '<div class="ui-state-error">';
+			echo '<div class="ui-state-error" style="padding:0 1em;">';
 			echo sprintf(__('<p><strong style="font-size:120%%;">WARNING:</strong><br/>The activated plugin version ("%s") does not match the current file version ("%s").</p><p>You must deactivate and re-activate the <strong>%s</strong> plugin for the changes to take effect.</p>', 'wppt_emailer'), $this_ver, $plugin_data['Version'], $plugin_data['Name']);
 			echo '</div>';
 		}
@@ -62,6 +64,7 @@
 		if( isset($_POST['action']) ) {
 			try {
 				if( $_POST['action'] == 'test' ) {
+					$show_email_received = false;
 					// First off, grab what our settings are now
 					$settings = array();
 					$settings["wppt_emailer_smtpdebug"]  = get_option("wppt_emailer_smtpdebug" );
@@ -121,6 +124,8 @@
 					if( strpos($mailoutput, 'SMTP Error: Could not connect to SMTP host') !== false ) {
 						throw new wppt_emailer_Exception(__('Unknown error. Check your port number matches your encryption type?','wppt_emailer'));
 					}
+					
+					$show_email_received = true;
 				} elseif( $_POST['action'] == 'save' ) {
 					update_option("wppt_emailer_smtpdebug",  $_POST["wppt_emailer_smtpdebug"] );
 					update_option("wppt_emailer_smtp_host",  $_POST["wppt_emailer_smtp_host"] );
@@ -130,13 +135,14 @@
 					update_option("wppt_emailer_password",   $_POST["wppt_emailer_password"]  );
 					update_option("wppt_emailer_smtpsecure", $_POST["wppt_emailer_smtpsecure"]);
 				}
+				
 			} catch( wppt_emailer_Exception_Remote_Refused $Ex ) {
-				echo '<div class="ui-state-error">';
+				echo '<div class="ui-state-error" style="padding:0 1em;">';
 				echo '<p>'.$Ex->getMessage().'</p>';
 				echo '</div>';
 				wppt_emailer_log_error( 'AdminUpdates', $Ex );
 			} catch( wppt_emailer_Exception_Remote_Unknown_Auth $Ex ) {
-				echo '<div class="ui-state-error">';
+				echo '<div class="ui-state-error" style="padding:0 1em;">';
 				echo '<p>'.$Ex->getMessage().'</p>';
 				if( strtolower(get_option('wppt_emailer_smtp_host'))=='smtp.gmail.com' ){
 					echo '<p>';
@@ -146,7 +152,7 @@
 				echo '</div>';
 				wppt_emailer_log_error( 'AdminUpdates', $Ex );
 			} catch( Exception $Ex ) {
-				echo '<div class="ui-state-error">';
+				echo '<div class="ui-state-error" style="padding:0 1em;">';
 				echo '<p>'.__('Server reported:','wppt_emailer').'</p>';
 				echo '<pre>'.$Ex->getMessage().'</pre>';
 				echo '</div>';
@@ -157,7 +163,7 @@
 		?>
 		
 		<form style="margin-right:2em;" method="post">			
-			<fieldset style="float:left; width: calc(50% - 1em);margin-right:1em;">
+			<fieldset style="float:left; width: calc(50% - 4em);">
 				<legend>Email Settings</legend>
 				
 				<p>
@@ -206,15 +212,18 @@
 				<legend>Email test results</legend>
 				<?php
 				if( $_POST['action'] == 'test' ) {
+					if( $show_email_received ) {
 				?>
 					<iframe style="width: 100%;" src="https://email.ghostinspector.com/<?=WPPT_EMAILER_TEST_TO;?>/latest"></iframe>
+				<?php 
+					}
+				?>
 					<pre style="padding:1ex;overflow-y:scroll; width:100%; height:16em;background-color:Silver;border:1px solid black; white-space: pre-wrap;"><?=$mailoutput?></pre>
 				<?php } else { ?>
 					<p> No test running... </p>
 				<?php } ?>
 			</fieldset>
 			
-		</form>
 		
 		<fieldset style="clear:left;">
 			<legend>Log Files</legend>
@@ -230,6 +239,7 @@
 				?>
 			</ul>
 		</fieldset>
+		</form>
 		
 		<script defer="defer">
 			jQuery(document).ready( function($){
@@ -389,5 +399,6 @@
 			}
 		</script>
 		<?php
+		echo '</div>';
 	}
 	

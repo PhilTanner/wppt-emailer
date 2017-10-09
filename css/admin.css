@@ -1,23 +1,24 @@
-html {
+html .wppt_emailer {
 	box-sizing: border-box;
 }
 
-*,
-*:before,
-*:after { /* Inherit box-sizing to make it easier to change the property for components that leverage other behavior; see http://css-tricks.com/inheriting-box-sizing-probably-slightly-better-best-practice/ */
+.wppt_emailer *,
+.wppt_emailer *:before,
+.wppt_emailer *:after { /* Inherit box-sizing to make it easier to change the property for components that leverage other behavior; see http://css-tricks.com/inheriting-box-sizing-probably-slightly-better-best-practice/ */
 	box-sizing: inherit;
 }
 
-fieldset {
+.wppt_emailer fieldset {
 	border: 1px solid rgba(0,0,0,0.1);
 	border-radius: 1ex;
 	padding: 1em;
 	margin-top: 2em;
 	margin-bottom: 1em;
+	margin-right:2em;
 	position:relative;
 	background-color:White;
 }
-legend {
+.wppt_emailer legend {
 	border: 1px solid rgba(0,0,0,0.1);
 	border-radius: 2em;
 	padding: 0.5ex 1em 0.3ex 1em;
@@ -26,26 +27,34 @@ legend {
 	color: #666;
 	font-family: sans-serif;
 }
-input,select {
+
+.wppt_emailer form label { 
+	display: inline-block;
+	text-align:right;
+	width: 9em;
+}
+.wppt_emailer input,
+.wppt_emailer select {
 	height:2em;
 	margin-bottom:2px;
 	/*padding: 1em !important;*/
 }
-input,select,textarea {
+.wppt_emailer input,
+.wppt_emailer select,
+.wppt_emailer textarea {
 	border: 1px solid #ddd;
 	background-color: #f9f9f9;
 	padding: 0.5ex 1ex;
 }
-input[type=date],label[type=date],input[type=text].date {
-	width: 8em;
-}
-input[type=text].rank,label.rank,select.rank {
-	width: 13em;
-}
-input[type=number] { 
+.wppt_emailer input[type=number] { 
 	width:5em;
 }
-input[required], select[required] {
+.wppt_emailer input[type=radio] { 
+	width:1em;
+	height:1.1em;
+}
+.wppt_emailer input[required], 
+.wppt_emailer select[required] {
 	background-image: radial-gradient(#F00 15%, transparent 18%), radial-gradient(#F00 15%, transparent 18%);
 	background-size: 2em 2em;
 	background-position: -1ex 0;
@@ -53,33 +62,21 @@ input[required], select[required] {
 	border:1px solid #999 !important;
 	padding-left:1em !important;
 }
-input[type=radio][required] { padding-left:0 !important; background-image:none; border-color:Red;}
-input#extension{ width:4em; }
-input#service_number { width:8em; }
-form label[for="title"] {width: 3.8em; }
-input.title { width: 12.45em; }
-
-/*form#profile { display:none; }*/
-form#profile input, form#profile label, form#profile select {
-	width:31%;
-	display:inline-block;
-	text-align:left;
+.wppt_emailer input[type=radio][required] { 
+	padding-left:0 !important; 
+	background-image:none; 
+	background-color:rgba(255,0,0,0.33);
 }
-
-form label { 
-	display: inline-block;
-	text-align:right;
-	width: 9em;
-}
-
-input.address, input[type="email"] {
+.wppt_emailer input.address,
+.wppt_emailer input[type="email"] {
 	width:25em;
 }
-input[type="tel"] {
+.wppt_emailer input[type="tel"] {
 	width:10em;
 }
-input[type="date"] {
+.wppt_emailer input[type="date"] {
 	width:10em;
 }
-dt { font-weight: bold; }
-dd { font-family: monospace; color:#666; }
+
+.wppt_emailer dt { font-weight: bold; }
+.wppt_emailer dd { font-family: monospace; color:#666; }
