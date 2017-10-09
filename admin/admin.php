@@ -41,13 +41,23 @@
 			wp_die( __( "You do not have sufficient permissions to access this page." ) );
 		}
 		
-		// So, start our page proper         
-		echo "<h2>" . sprintf(__("Phil's Emailer v%s", "wppt_emailer"), get_option('wppt_emailer_version', __('Unknown', 'wppt_emailer')));
-		$gitbranch = get_git_branch();
+		// So, start our page proper
+		$this_ver = get_option('wppt_emailer_version', __('Unknown', 'wppt_emailer'));
+		echo "<h2>" . sprintf(__("Phil's Emailer v%s", "wppt_emailer"), $this_ver);
+		$gitbranch = wppt_emailer_get_git_branch();
 		if($gitbranch) {
 			echo sprintf(__('<br /><span style="font-size:80%%">(Current branch: <em>%s</em>)</style>','wppt_emailer'), $gitbranch);
 		}
 		echo "</h2>";
+		
+		$plugin_data = get_plugin_data(plugin_dir_path(__FILE__).'../wppt-emailer.php');
+		if( $plugin_data['Version'] != $this_ver ){
+			echo '<div class="ui-state-error">';
+			echo sprintf(__('<p><strong style="font-size:120%%;">WARNING:</strong><br/>The activated plugin version ("%s") does not match the current file version ("%s").</p><p>You must deactivate and re-activate the <strong>%s</strong> plugin for the changes to take effect.</p>', 'wppt_emailer'), $this_ver, $plugin_data['Version'], $plugin_data['Name']);
+			echo '</div>';
+		}
+
+		
 		// We've got some settings to save, do so before we output them again
 		if( isset($_POST['action']) ) {
 			try {
