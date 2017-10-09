@@ -41,6 +41,8 @@
 			wp_die( __( "You do not have sufficient permissions to access this page." ) );
 		}
 		
+		echo '<div class="wppt_emailer">';
+		
 		// So, start our page proper
 		$this_ver = get_option('wppt_emailer_version', __('Unknown', 'wppt_emailer'));
 		echo "<h2>" . sprintf(__("Phil's Emailer v%s", "wppt_emailer"), $this_ver);
@@ -389,5 +391,6 @@
 			}
 		</script>
 		<?php
+		echo '</div>';
 	}
 	
