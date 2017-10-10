@@ -2,7 +2,7 @@
 
 Yet another WordPress plugin that helps diagnose and resolve email woes.
 
-Note: Uses 3rd party app Ghost Inspector (see below) and embeds a jQuery stylesheet from Google's CDN for use within the admin tool.
+Note: Uses 3rd party app Ghost Inspector (for full details, see below).
 
 ## Getting Started
 
@@ -51,7 +51,7 @@ The email address receipt is tested by sending the email to a 3rd party external
 
 Ghost Inspector is a really useful automated test suite - which provides a way to test applications sending of emails. I recommend you check it out if you want to run any form of automated tests against your web sites.
 
-The mail sent to their server contains only fixed text, with no details about your system (other than the From: address for the emails). The email inbox is deleted after an hour and is not retained.
+The mail sent to their server contains only fixed text, with no details about your system (other than the From: address the emails are sent from). The email inbox is deleted after an hour and is not retained.
 
 For more information about their email test gateway, you can view their documentation here:
 https://ghostinspector.com/docs/check-email/
