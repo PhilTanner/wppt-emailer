@@ -183,13 +183,21 @@
 				</p>
 				
 				<p>
+					<label for="wppt_emailer_smtpsecure">Use encryption?</label>
+					<select name="wppt_emailer_smtpsecure" id="wppt_emailer_smtpsecure" required="required">
+						<option value='none'<?=(get_option('wppt_emailer_smtpsecure')==''?' selected="selected"':'');?>>No</option>
+						<option value='tls'<?=(get_option('wppt_emailer_smtpsecure')=='tls'?' selected="selected"':'');?>>Yes - using <strong>TLS</strong></option>
+						<option value='ssl'<?=(get_option('wppt_emailer_smtpsecure')=='ssl'?' selected="selected"':'');?>>Yes - using <strong>SSL</strong></option>
+					</select>
+				</p>
+				
+				<p>
 					Use username/password to sign in?<br />
 					<label for="wppt_emailer_smtp_auth_y">Yes</label>
 					<input type="radio" name="wppt_emailer_smtp_auth" id="wppt_emailer_smtp_auth_y" value="1" required="required"<?=(get_option('wppt_emailer_smtp_auth')?' checked="checked"':'');?> />
 					<label for="wppt_emailer_smtp_auth_n">No</label>
 					<input type="radio" name="wppt_emailer_smtp_auth" id="wppt_emailer_smtp_auth_n" value="0" required="required"<?=(get_option('wppt_emailer_smtp_auth')?'':' checked="checked"');?> />
 				</p>
-				
 				<div id="auth" style="<?=(get_option('wppt_emailer_smtp_auth')?'':'display:none;');?>border:1px solid black; margin:1em; border-radius:5px;">
 					<p>
 						<label for="wppt_emailer_username">Username</label>
@@ -199,20 +207,12 @@
 						<label for="wppt_emailer_password">Password</label>
 						<input name="wppt_emailer_password" id="wppt_emailer_username" type="password" value="<?=get_option('wppt_emailer_password');?>" required="required" />
 					</p>
-					<p>
-						<label for="wppt_emailer_smtpsecure">Encrypted sign in?</label>
-						<select name="wppt_emailer_smtpsecure" id="wppt_emailer_smtpsecure" required="required">
-							<option value='none'<?=(get_option('wppt_emailer_smtpsecure')==''?' selected="selected"':'');?>>No</option>
-							<option value='tls'<?=(get_option('wppt_emailer_smtpsecure')=='tls'?' selected="selected"':'');?>>Yes - using <strong>TLS</strong></option>
-							<option value='ssl'<?=(get_option('wppt_emailer_smtpsecure')=='ssl'?' selected="selected"':'');?>>Yes - using <strong>SSL</strong></option>
-						</select>
-					</p>
 				</div>
 				<?php
 					wp_nonce_field( 'wppt_emailer_settings' );
 				?>
-				<button type="submit" value="test" name="action">Test</button>
-				<button type="submit" value="save" name="action">Save</button>
+				<button type="submit" value="test" name="action" id="test_button">Test</button>
+				<button type="submit" value="save" name="action" id="save_button">Save</button>
 			</fieldset>
 			<fieldset style="float:left; width: 50%;">
 				<legend>Email test results</legend>
@@ -282,111 +282,116 @@
 				// Check our settings for Gmail
 				jQuery('form').submit( function( event ) {
 					var settingsGood = true;
-					// Look for a GMail/Google server
-					if( jQuery('#wppt_emailer_smtp_host').val().indexOf('gmail') >= 0 || jQuery('#wppt_emailer_smtp_host').val().indexOf('google') >= 0 ) {
-						// As soon as any step fails, don't bother checking the rest
-						while( settingsGood ) {
-							if( jQuery('#wppt_emailer_smtp_host').val().toLowerCase() != 'smtp.gmail.com') {
-								settingsGood = false;
+					// If we already have a confirm screen in place and we're submitting again, we're overriding our suggestion, so 
+					// don't bother checking & asking again...
+					if( !jQuery("div.confirmsettings").length ) {
+						// Look for a GMail/Google server
+						if( jQuery('#wppt_emailer_smtp_host').val().indexOf('gmail') >= 0 || jQuery('#wppt_emailer_smtp_host').val().indexOf('google') >= 0 ) {
+							// As soon as any step fails, don't bother checking the rest
+							while( settingsGood ) {
+								if( jQuery('#wppt_emailer_smtp_host').val().toLowerCase() != 'smtp.gmail.com') {
+									settingsGood = false;
+								}
+								if( jQuery('#wppt_emailer_port').val() != '587') {
+									settingsGood = false;
+								}
+								if( !jQuery('#wppt_emailer_smtp_auth_y').prop('checked') ) {
+									settingsGood = false;
+								}
+								if( jQuery('#wppt_emailer_username').val().indexOf('@') < 0) {
+									settingsGood = false;
+								}
+								if( jQuery('#wppt_emailer_smtpsecure').val() != 'tls') {
+									settingsGood = false;
+								}
+								// Avoid infinite loops :D
+								break;
 							}
-							if( jQuery('#wppt_emailer_port').val() != '587') {
-								settingsGood = false;
+							// If there's an issue, suggest what our settings should be
+							if( !settingsGood ) {
+								jQuery('<div class="confirmsettings"></div>').html('<p>It looks like you\'re trying to use Google outbound servers to send mail, but '+
+									'your settings don\'t seem to match their recommended ones.</p>'+
+									'<p> You should update your values to the following settings:</p>'+
+									'<dl>'+
+									'	<dt>Host</dt>'+
+									'	<dd>smtp.gmail.com</dd>'+
+									'	<dt>Port</dt>'+
+									'	<dd>587</dd>'+
+									'	<dt>Use encryption</dt>'+
+									'	<dd>TLS</dd>'+
+									'	<dt>Use username/password</dt>'+
+									'	<dd>Yes</dd>'+
+									'	<dt>Username</dt>'+
+									'	<dd><em>&lt;Your GMail email address&gt;</em></dd>'+
+									'	<dt>Password</dt>'+
+									'	<dd><em>&lt;The password you use to log in to GMail.com&gt;</em></dd>'+
+									'</dl>'+
+									'<p>You also need to make sure that you have enabled "Less Secure Apps" to use your account:<br />'+
+									'<a href="https://support.google.com/accounts/answer/6010255" target="_blank">https://support.google.com/accounts/answer/6010255</a>'+
+									'</p>').dialog({
+									modal:true,
+									title:'Confirm settings',
+									width:'50%',
+									buttons: [
+										{ text: 'Cancel', click: function(){ jQuery(this).dialog('destroy'); } },
+										{ text: 'Override', click: function(){ jQuery('#save_button').click(); } }
+									]
+								});
+							// Look for an MS server
 							}
-							if( !jQuery('#wppt_emailer_smtp_auth_y').prop('checked') ) {
-								settingsGood = false;
+						} else if( jQuery('#wppt_emailer_smtp_host').val().indexOf('office365') >= 0 ) {
+							// As soon as any step fails, don't bother checking the rest
+							while( settingsGood ) {
+								if( jQuery('#wppt_emailer_smtp_host').val().toLowerCase() != 'smtp.office365.com') {
+									settingsGood = false;
+								}
+								if( jQuery('#wppt_emailer_port').val() != '587') {
+									settingsGood = false;
+								}
+								if( !jQuery('#wppt_emailer_smtp_auth_y').prop('checked') ) {
+									settingsGood = false;
+								}
+								if( jQuery('#wppt_emailer_username').val().indexOf('@') < 0) {
+									settingsGood = false;
+								}
+								if( jQuery('#wppt_emailer_smtpsecure').val() != 'tls') {
+									settingsGood = false;
+								}
+								// Avoid infinite loops :D
+								break;
 							}
-							if( jQuery('#wppt_emailer_username').val().indexOf('@') < 0) {
-								settingsGood = false;
+							// If there's an issue, suggest what our settings should be
+							if( !settingsGood ) {
+								jQuery('<div class="confirmsettings"></div>').html('<p>It looks like you\'re trying to use Microsoft Office 365 outbound servers to send mail, but '+
+									'your settings don\'t seem to match their recommended ones.</p>'+
+									'<p> You should update your values to the following settings:</p>'+
+									'<dl>'+
+									'	<dt>Host</dt>'+
+									'	<dd>smtp.office365.com</dd>'+
+									'	<dt>Port</dt>'+
+									'	<dd>587</dd>'+
+									'	<dt>Use encryption</dt>'+
+									'	<dd>TLS</dd>'+
+									'	<dt>Use username/password</dt>'+
+									'	<dd>Yes</dd>'+
+									'	<dt>Username</dt>'+
+									'	<dd><em>&lt;Your Office 365 email address&gt;</em></dd>'+
+									'	<dt>Password</dt>'+
+									'	<dd><em>&lt;The password you use to log in to Office 365.com&gt;</em></dd>'+
+									'</dl>'+
+									'<p>You also need to make sure that you have enabled "multifunction devices or applications" to use your account:<br />'+
+									'<a href="https://technet.microsoft.com/en-us/library/dn554323.aspx" target="_blank">https://technet.microsoft.com/en-us/library/dn554323.aspx</a>'+
+									'</p>').dialog({
+									modal:true,
+									title:'Confirm settings',
+									width:'50%',
+									buttons: [
+										{ text: 'Cancel', click: function(){ jQuery(this).dialog('destroy'); } },
+										{ text: 'Override', click: function(){ jQuery('#save_button').click(); } }
+									]
+								});
 							}
-							if( jQuery('#wppt_emailer_smtpsecure').val() != 'tls') {
-								settingsGood = false;
-							}
-							// Avoid infinite loops :D
-							break;
 						}
-						// If there's an issue, suggest what our settings should be
-						if( !settingsGood ) {
-							jQuery('<div></div>').html('<p>It looks like you\'re trying to use Google outbound servers to send mail, but '+
-								'your settings don\'t seem to match their recommended ones.</p>'+
-								'<p> You should update your values to the following settings:</p>'+
-								'<dl>'+
-								'	<dt>Host</dt>'+
-								'	<dd>smtp.gmail.com</dd>'+
-								'	<dt>Port</dt>'+
-								'	<dd>587</dd>'+
-								'	<dt>Use username/password</dt>'+
-								'	<dd>Yes</dd>'+
-								'	<dt>Username</dt>'+
-								'	<dd><em>&lt;Your GMail email address&gt;</em></dd>'+
-								'	<dt>Password</dt>'+
-								'	<dd><em>&lt;The password you use to log in to GMail.com&gt;</em></dd>'+
-								'	<dt>Encrypted sign in</dt>'+
-								'	<dd>TLS</dd>'+
-								'</dl>'+
-								'<p>You also need to make sure that you have enabled "Less Secure Apps" to use your account:<br />'+
-								'<a href="https://support.google.com/accounts/answer/6010255" target="_blank">https://support.google.com/accounts/answer/6010255</a>'+
-								'</p>').dialog({
-								modal:true,
-								title:'Confirm settings',
-								width:'50%',
-								buttons: [
-									{ text: 'OK', click: function(){ jQuery(this).dialog('close'); } }
-								]
-							});
-						// Look for an MS server
-						}
-					} else if( jQuery('#wppt_emailer_smtp_host').val().indexOf('office365') >= 0 ) {
-						// As soon as any step fails, don't bother checking the rest
-						while( settingsGood ) {
-							if( jQuery('#wppt_emailer_smtp_host').val().toLowerCase() != 'smtp.office365.com') {
-								settingsGood = false;
-							}
-							if( jQuery('#wppt_emailer_port').val() != '587') {
-								settingsGood = false;
-							}
-							if( !jQuery('#wppt_emailer_smtp_auth_y').prop('checked') ) {
-								settingsGood = false;
-							}
-							if( jQuery('#wppt_emailer_username').val().indexOf('@') < 0) {
-								settingsGood = false;
-							}
-							if( jQuery('#wppt_emailer_smtpsecure').val() != 'tls') {
-								settingsGood = false;
-							}
-							// Avoid infinite loops :D
-							break;
-						}
-						// If there's an issue, suggest what our settings should be
-						if( !settingsGood ) {
-							jQuery('<div></div>').html('<p>It looks like you\'re trying to use Microsoft Office 365 outbound servers to send mail, but '+
-								'your settings don\'t seem to match their recommended ones.</p>'+
-								'<p> You should update your values to the following settings:</p>'+
-								'<dl>'+
-								'	<dt>Host</dt>'+
-								'	<dd>smtp.office365.com</dd>'+
-								'	<dt>Port</dt>'+
-								'	<dd>587</dd>'+
-								'	<dt>Use username/password</dt>'+
-								'	<dd>Yes</dd>'+
-								'	<dt>Username</dt>'+
-								'	<dd><em>&lt;Your Office 365 email address&gt;</em></dd>'+
-								'	<dt>Password</dt>'+
-								'	<dd><em>&lt;The password you use to log in to Office 365.com&gt;</em></dd>'+
-								'	<dt>Encrypted sign in</dt>'+
-								'	<dd>TLS</dd>'+
-								'</dl>'+
-								'<p>You also need to make sure that you have enabled "multifunction devices or applications" to use your account:<br />'+
-								'<a href="https://technet.microsoft.com/en-us/library/dn554323.aspx" target="_blank">https://technet.microsoft.com/en-us/library/dn554323.aspx</a>'+
-								'</p>').dialog({
-								modal:true,
-								title:'Confirm settings',
-								width:'50%',
-								buttons: [
-									{ text: 'OK', click: function(){ jQuery(this).dialog('close'); } }
-								]
-							});
-						}
-
 					}
 					// Exit with our status, true means continue, false means don't submit
 					return settingsGood;
