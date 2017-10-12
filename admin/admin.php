@@ -271,7 +271,8 @@
 							buttons: [
 								{ text: 'Yes', click: function(){ jQuery('#wppt_emailer_port').val(suggestedPort); jQuery(this).dialog('close'); } },
 								{ text: 'No', click: function(){ jQuery(this).dialog('close'); } }
-							]
+							],
+							close: function(){ jQuery(this).dialog("destroy"); }
 						});
 					}
 				});
@@ -333,9 +334,10 @@
 									title:'Confirm settings',
 									width:'50%',
 									buttons: [
-										{ text: 'Cancel', click: function(){ jQuery(this).dialog('destroy'); } },
+										{ text: 'Cancel', click: function(){ jQuery(this).dialog('close'); } },
 										{ text: 'Override', click: function(){ jQuery('#save_button').click(); } }
-									]
+									],
+									close: function(){ jQuery(this).dialog("destroy"); }
 								});
 							// Look for an MS server
 							}
@@ -386,9 +388,10 @@
 									title:'Confirm settings',
 									width:'50%',
 									buttons: [
-										{ text: 'Cancel', click: function(){ jQuery(this).dialog('destroy'); } },
+										{ text: 'Cancel', click: function(){ jQuery(this).dialog('close'); } },
 										{ text: 'Override', click: function(){ jQuery('#save_button').click(); } }
-									]
+									],
+									close: function(){ jQuery(this).dialog("destroy"); }
 								});
 							}
 						}
