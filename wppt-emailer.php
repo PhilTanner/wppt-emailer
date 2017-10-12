@@ -140,7 +140,7 @@
 			'wppt_emailer_admin',	
 			plugins_url( '/css/admin.css', __FILE__ ), 
 			false,	
-			get_option( "wppt_emailer_version")  )
+			get_option( "wppt_emailer_version") 
 		);
 		wp_enqueue_style ( 'wppt_emailer_admin' );
 
