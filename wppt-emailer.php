@@ -32,7 +32,7 @@
 	define( 'WPPT_EMAILER_TEST_TO',     'wppt_emailer_'.time() );
 	define( 'WPPT_EMAILER_TEST_TO_ADDR', WPPT_EMAILER_TEST_TO.'@email.ghostinspector.com' );
 	define( 'WPPT_EMAILER_TEST_SUBJECT','wppt_emailer Test email success!' );
-	define( 'WPPT_EMAILER_TEST_MESSAGE','This is a test email from the email system. Success!'."\n\n".'If you can read this, your outbound email demonstrably works. So check the spam filters on the receiving end.' );
+	define( 'WPPT_EMAILER_TEST_MESSAGE','This is a test email from the email system. Success!'."\n\n".'If you can read this, your outbound email demonstrably works. So check the spam filters on the receiving end - and the Sent folder of your mail account.' );
 	
 	// Some custom exceptions for error handing
 	class wppt_emailer_Exception                                      extends Exception {}
@@ -140,7 +140,7 @@
 			'wppt_emailer_admin',	
 			plugins_url( '/css/admin.css', __FILE__ ), 
 			false,	
-			date("ymd-Gis", filemtime( plugin_dir_path( __FILE__ ) .'/css/admin.css' )  )
+			get_option( "wppt_emailer_version")  )
 		);
 		wp_enqueue_style ( 'wppt_emailer_admin' );
 
