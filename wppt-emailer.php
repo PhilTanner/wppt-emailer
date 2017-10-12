@@ -132,7 +132,6 @@
 		wp_enqueue_style(
 			'jquery-ui-redmond',
 			// This would make more sense, but WP plugin checkers say no...
-			//'//ajax.googleapis.com/ajax/libs/jqueryui/'.$wp_scripts->registered['jquery-ui-core']->ver.'/themes/redmond/jquery-ui.min.css');
 			plugins_url( '/css/jquery-ui-1.11.4.custom/jquery-ui.min.css', __FILE__ ),
 			$wp_scripts->registered['jquery-ui-core']->ver
 		);
