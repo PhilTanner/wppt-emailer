@@ -70,13 +70,13 @@
 
 		// Default our plugin settings to what WordPress is currently using
 		$currentport = get_option('mailserver_port', 25);
-		update_option( "wppt_emailer_smtpdebug", 0 );
-		update_option( "wppt_emailer_smtp_host", get_option('mailserver_url', 'localhost') );
-		update_option( "wppt_emailer_smtp_auth", (strlen(trim(get_option('mailserver_login','')))?true:false) );
-		update_option( "wppt_emailer_port",      $currentport );
-		update_option( "wppt_emailer_username",  get_option('mailserver_login','') );
-		update_option( "wppt_emailer_password",  get_option('mailserver_pass','')  );
-		update_option( "wppt_emailer_smtpsecure",($currentport==587?'tls':($currentport==465?'ssl':'none')) );
+		add_option( "wppt_emailer_smtpdebug", 0 );
+		add_option( "wppt_emailer_smtp_host", get_option('mailserver_url', 'localhost') );
+		add_option( "wppt_emailer_smtp_auth", (strlen(trim(get_option('mailserver_login','')))?true:false) );
+		add_option( "wppt_emailer_port",      $currentport );
+		add_option( "wppt_emailer_username",  get_option('mailserver_login','') );
+		add_option( "wppt_emailer_password",  get_option('mailserver_pass','')  );
+		add_option( "wppt_emailer_smtpsecure",($currentport==587?'tls':($currentport==465?'ssl':'none')) );
 		
 		register_uninstall_hook( __FILE__, 'wppt_emailer_uninstall' );
 	}
