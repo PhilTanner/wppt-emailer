@@ -170,13 +170,13 @@
 		// We're always going to use SMTP
 		$phpmailer->isSMTP();
 		// Set our debug level (Default to 'off' for production cases)
-		$phpmailer->SMTPDebug=  get_option( 'wppt_emailer_smtpdebug',     0 );
+		$phpmailer->SMTPDebug=  get_option( 'wppt_emailer_smtpdebug' );
 		// What SMTP host are we going to be sending out mail through?
-		$phpmailer->Host     = get_option( 'wppt_emailer_smtp_host', 'localhost' );
+		$phpmailer->Host     = get_option( 'wppt_emailer_smtp_host' );
 		// Do we need authorisation to access this email host?
-		$phpmailer->SMTPAuth = get_option( 'wppt_emailer_smtp_auth', false );
+		$phpmailer->SMTPAuth = get_option( 'wppt_emailer_smtp_auth' );
 		// What SMTP port do we want to access?
-		$phpmailer->Port     = get_option( 'wppt_emailer_port',          25 );
+		$phpmailer->Port     = get_option( 'wppt_emailer_port' );
 		// We're only going to give it auth credentials if we're going to auth
 		if( $phpmailer->SMTPAuth ) {
 			$phpmailer->Username = get_option( 'wppt_emailer_username' );
