@@ -401,10 +401,11 @@
 			
 			// AJAX call to display contents of a log file
 			function showlog( log ) {
-				jQuery('<pre style="word-wrap:break-word;white-space:pre-wrap"></pre>').load('<?=get_site_url()?>/wp-admin/admin-ajax.php?action=logfile&log='+log).dialog({
+				jQuery('<pre class="wppt_emailer" style="word-wrap:break-word;white-space:pre-wrap"></pre>').load('<?=get_site_url()?>/wp-admin/admin-ajax.php?action=wppt_emailer_logfile&log='+log).dialog({
 					title: "Logfile: "+log,
 					modal: true,
 					width: "80%",
+					height:"500",
 					close: function(){ jQuery(this).dialog("destroy"); }
 				}).parent().css({ zIndex:10000 });
 			}

@@ -80,3 +80,5 @@ html .wppt_emailer {
 
 .wppt_emailer dt { font-weight: bold; }
 .wppt_emailer dd { font-family: monospace; color:#666; }
+
+.wppt_emailer .string { color: #245ccc; }

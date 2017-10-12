@@ -91,7 +91,7 @@
 	// Function to be called when WordPress loads a page with this plugin activated
 	function wppt_emailer_load($hook) {
 		// Logged in users make an AJAX call
-		add_action( 'wp_ajax_logfile',   'wppt_emailer_ajax_logfile' );
+		add_action( 'wp_ajax_wppt_emailer_logfile',   'wppt_emailer_ajax_logfile' );
 	}
 	add_action('init', 'wppt_emailer_load');
 
@@ -215,6 +215,47 @@
 		$f = fopen( WPPT_EMAILER_LOG_DIR.$logfile, 'r' ) or wp_die('Unable to open log file.');
 		$fc = fread($f, filesize( WPPT_EMAILER_LOG_DIR.$logfile ));
 		fclose($f);
+		
+		// Prettify our file contents
+		$prettycontents = array();
+		$contents = explode("\n", $fc);
+		for($i=count($contents); $i>=0; $i--){
+			$line = explode("\t", $contents[$i]);
+			if( count($line) == 2 ){
+				$prettycontents[$line[0]] = json_decode($line[1]);
+			}
+		}
+		ob_start();
+		print_r($prettycontents);
+		$fc = ob_get_contents();
+		ob_end_clean();
+		$fc = str_replace(
+			"]", 
+			"</strong>]", 
+			str_replace(
+				"[", 
+				"[<strong class='string'>", 
+				htmlspecialchars(
+					str_replace(
+						"\n\n", 
+						"\n", 
+						str_replace(
+							' => Array', 
+							'', 
+							str_replace(
+								' => stdClass Object', 
+								'', 
+								$fc
+							)
+						)
+					), 
+					ENT_QUOTES, 
+					'UTF-8', 
+					true
+				)
+			) 
+		);
+		
 		wp_die($fc);
 	}
 
