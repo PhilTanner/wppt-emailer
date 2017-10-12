@@ -68,6 +68,16 @@
 		$plugin_data = get_plugin_data(__FILE__);
 		update_option( "wppt_emailer_version", $plugin_data['Version'] );
 
+		// Default our plugin settings to what WordPress is currently using
+		$currentport = get_option('mailserver_port', 25);
+		update_option( "wppt_emailer_smtpdebug", 0 );
+		update_option( "wppt_emailer_smtp_host", get_option('mailserver_url', 'localhost') );
+		update_option( "wppt_emailer_smtp_auth", (strlen(trim(get_option('mailserver_login','')))?true:false) );
+		update_option( "wppt_emailer_port",      $currentport );
+		update_option( "wppt_emailer_username",  get_option('mailserver_login','') );
+		update_option( "wppt_emailer_password",  get_option('mailserver_pass','')  );
+		update_option( "wppt_emailer_smtpsecure",($currentport==587?'tls':($currentport==465?'ssl':'none')) );
+		
 		register_uninstall_hook( __FILE__, 'wppt_emailer_uninstall' );
 	}
 	register_activation_hook( __FILE__, 'wppt_emailer_activate' );
@@ -126,7 +136,7 @@
 			plugins_url( '/css/jquery-ui-1.11.4.custom/jquery-ui.min.css', __FILE__ ),
 			$wp_scripts->registered['jquery-ui-core']->ver
 		);
-	
+
 		wp_register_style( 
 			'wppt_emailer_admin',	
 			plugins_url( '/css/admin.css', __FILE__ ), 
