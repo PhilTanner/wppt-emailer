@@ -272,7 +272,7 @@
 								{ text: 'No', click: function(){ jQuery(this).dialog('close'); } }
 							],
 							close: function(){ jQuery(this).dialog("destroy"); }
-						});
+						}).parent().appendTo('.wppt_emailer');
 					}
 				});
 				
@@ -337,7 +337,7 @@
 										{ text: 'Override', click: function(){ jQuery('#save_button').click(); } }
 									],
 									close: function(){ jQuery(this).dialog("destroy"); }
-								});
+								}).parent().appendTo('.wppt_emailer');
 							// Look for an MS server
 							}
 						} else if( jQuery('#wppt_emailer_smtp_host').val().indexOf('office365') >= 0 ) {
@@ -391,7 +391,7 @@
 										{ text: 'Override', click: function(){ jQuery('#save_button').click(); } }
 									],
 									close: function(){ jQuery(this).dialog("destroy"); }
-								});
+								}).parent().appendTo('.wppt_emailer');
 							}
 						}
 					}
@@ -403,13 +403,13 @@
 			
 			// AJAX call to display contents of a log file
 			function showlog( log ) {
-				jQuery('<pre class="wppt_emailer" style="word-wrap:break-word;white-space:pre-wrap"></pre>').load('<?=get_site_url()?>/wp-admin/admin-ajax.php?action=wppt_emailer_logfile&log='+log).dialog({
+				jQuery('<pre style="word-wrap:break-word;white-space:pre-wrap"></pre>').load('<?=get_site_url()?>/wp-admin/admin-ajax.php?action=wppt_emailer_logfile&log='+log).dialog({
 					title: "Logfile: "+log,
 					modal: true,
 					width: "80%",
 					height:"500",
 					close: function(){ jQuery(this).dialog("destroy"); }
-				}).parent().css({ zIndex:10000 });
+				}).parent().css({ zIndex:10000 }).appendTo('.wppt_emailer');
 			}
 		</script>
 		<?php
