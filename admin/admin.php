@@ -276,8 +276,11 @@
 					}
 				});
 				
-				// Prettify our buttons
-				jQuery('form button[type="submit"]').button({ icons:{ primary: 'ui-icon-wrench' } }).filter('[value="save"]').button({icons: { secondary: 'ui-icon-disk'}}).css({float:'right'});
+				// Prettify our buttons & track which one was clicked on
+				jQuery('form button[type="submit"]').click(function() {
+					jQuery("button[type=submit]", jQuery(this).parents("form")).removeAttr("clicked");
+					jQuery(this).attr("clicked", "true");
+				}).button({ icons:{ primary: 'ui-icon-wrench' } }).filter('[value="save"]').button({icons: { secondary: 'ui-icon-disk'}}).css({float:'right'});
 				
 				// Check our settings for Gmail
 				jQuery('form').submit( function( event ) {
@@ -334,7 +337,7 @@
 									width:'50%',
 									buttons: [
 										{ text: 'Cancel', click: function(){ jQuery(this).dialog('close'); } },
-										{ text: 'Override', click: function(){ jQuery('#save_button').click(); } }
+										{ text: 'Override', click: function(){ jQuery('button[type=submit][clicked=true]').click(); } }
 									],
 									close: function(){ jQuery(this).dialog("destroy"); }
 								}).parent().appendTo('.wppt_emailer');
@@ -388,7 +391,7 @@
 									width:'50%',
 									buttons: [
 										{ text: 'Cancel', click: function(){ jQuery(this).dialog('close'); } },
-										{ text: 'Override', click: function(){ jQuery('#save_button').click(); } }
+										{ text: 'Override', click: function(){ jQuery('button[type=submit][clicked=true]').click(); } }
 									],
 									close: function(){ jQuery(this).dialog("destroy"); }
 								}).parent().appendTo('.wppt_emailer');
