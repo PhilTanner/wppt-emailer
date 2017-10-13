@@ -1,8 +1,7 @@
 <?php
 	/*
-		Plugin Name: Phil Tanner's Emailer 
-		Plugin URI:  https://github.com/PhilTanner/wppt_emailer
-
+		Phil Tanner's Emailer 
+		
 		Copyright (C) 2017 Phil Tanner
 
 		This program is free software: you can redistribute it and/or modify
