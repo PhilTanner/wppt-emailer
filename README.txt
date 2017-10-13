@@ -16,11 +16,11 @@ This plugin should be platform (Windows/Mac/*Nix) independent, and doesn't requi
 
 It does request jQuery and jQueryUI to be loaded from WordPress, though these should already be bundled in all standard (i.e. non-very-specific instances where they've been deliberately disabled) installs.
 
-A single jQueryUI CSS stylesheet is requested from Google's CDN, but the code will work offline (although your emails won't!), but look slightly ugly.
-
 ### Installing
 
-Download the lastest zipped copy of the plugin from GitHub:
+You can install most simply by using the WordPress plugin directory.
+
+Alternately, you can download the lastest zipped copy of the plugin from GitHub:
 https://github.com/PhilTanner/wppt-emailer/archive/master.zip
 
 Log in to your WordPress dashboard, navigate to the Plugins menu, and click [Add New] at the top of the page.
@@ -33,10 +33,6 @@ Select the ```wppt-emailer-master.zip``` file you've just downloaded.
 
 Click [Install Now]
 
-`` Do NOT click [Activate Plugin]``
-
-Return to the Plugins list, and click [Activate] under the "Phil Tanner's Emailer" item.
-
 
 ## Running the tests
 
@@ -46,7 +42,7 @@ Enter your SMTP mail settings, and click the Test button.
 
 If it works, you will get a success statement appear on the right. If not - hopefully a meaningful message as to why not.
 
-Please NOTE!:
+## Please NOTE!:
 The email address receipt is tested by sending the email to a 3rd party external service, Ghost Inspector (https://ghostinspector.com/).
 
 Ghost Inspector is a really useful automated test suite - which provides a way to test applications sending of emails. I recommend you check it out if you want to run any form of automated tests against your web sites.
@@ -56,10 +52,6 @@ The mail sent to their server contains only fixed text, with no details about yo
 For more information about their email test gateway, you can view their documentation here:
 https://ghostinspector.com/docs/check-email/
 
-
-## Deployment
-
-Add additional notes about how to deploy this on a live system
 
 ## License
 
