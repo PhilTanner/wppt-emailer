@@ -4,6 +4,7 @@
 		Plugin URI:  https://github.com/PhilTanner/wppt_emailer
 		Description: A way to debug email/SMTP error pains
 		Version:     1.0.4
+		Tested up to:4.9
 		Author:      Phil Tanner
 		Author URI:  https://github.com/PhilTanner
 		License:     GPL3
